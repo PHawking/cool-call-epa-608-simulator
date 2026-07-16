@@ -173,3 +173,11 @@ body[data-training-group="type3"] .scene-roof{background:#49687b;clip-path:polyg
   .dispatch-picker{grid-template-columns:1fr}
   .dispatch-picker button,.dispatch-picker>small{grid-column:1}
 }
+
+.quiz-choice.multi-choice{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.quiz-choice.multi-choice input{flex:0 0 auto;margin:2px 0 0;accent-color:var(--blue)}
+.quiz-choice.multi-choice span{line-height:1.4}
+.quiz-choice.multi-choice.selected{border-color:var(--blue);background:#f0fbfc}
+.quiz-choice.multi-choice:has(input:disabled){cursor:default}
+.quiz-submit{margin-top:13px}
+.quiz-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}

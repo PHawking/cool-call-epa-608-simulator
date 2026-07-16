@@ -7,14 +7,49 @@ const groups = ["core", "type1", "type2", "type3"];
 
 async function answerBankQuestion(page) {
   await page.waitForSelector("#quizDialog[open]");
-  const answer = await page.evaluate(() => {
+  const question = await page.evaluate(() => {
     const text = document.getElementById("quizQuestion").textContent;
     const question = Object.values(window.EPA_QUESTION_BANKS).flat().find(item => item.question === text);
     if (!question) throw new Error(`Question not found in bank: ${text}`);
-    return question.answer;
+    return { answers:question.answers, multiple:question.multiple };
   });
-  await page.click(`#quizChoices [data-i="${answer}"]`);
+  for (const answer of question.answers) await page.click(`#quizChoices [data-i="${answer}"]`);
+  if (question.multiple) await page.click("#quizSubmit");
   await page.click("#quizContinue");
+}
+
+async function verifyMultiAnswerFlow(page) {
+  const question = await page.evaluate(() => Object.values(window.EPA_QUESTION_BANKS).flat().find(item => item.multiple && item.answers.length > 1));
+  if (!question) throw new Error("No multi-answer question with at least two correct choices was found");
+
+  await page.evaluate(item => {
+    window.multiAnswerResult = null;
+    window.CoolCall.openChoiceDialog(item, correct => { window.multiAnswerResult = correct; }, "MULTI-ANSWER TEST");
+  }, question);
+  await page.click(`#quizChoices [data-i="${question.answers[0]}"]`);
+  const beforeSubmit = await page.evaluate(() => ({
+    feedbackHidden:document.getElementById("quizFeedback").hidden,
+    continueHidden:document.getElementById("quizContinue").hidden,
+    submitHidden:document.getElementById("quizSubmit").hidden,
+    checkboxCount:document.querySelectorAll("#quizChoices input[type=checkbox]").length
+  }));
+  if (!beforeSubmit.feedbackHidden || !beforeSubmit.continueHidden || beforeSubmit.submitHidden || beforeSubmit.checkboxCount !== question.choices.length) {
+    throw new Error(`Multi-answer question was graded before Submit: ${JSON.stringify(beforeSubmit)}`);
+  }
+  await page.click("#quizSubmit");
+  if (!(await page.locator("#quizFeedback").textContent()).startsWith("Not quite.")) throw new Error("A partial multi-answer selection was accepted");
+  await page.click("#quizContinue");
+  if (await page.evaluate(() => window.multiAnswerResult) !== false) throw new Error("Partial multi-answer callback was not false");
+
+  await page.evaluate(item => {
+    window.multiAnswerResult = null;
+    window.CoolCall.openChoiceDialog(item, correct => { window.multiAnswerResult = correct; }, "MULTI-ANSWER TEST");
+  }, question);
+  for (const answer of question.answers) await page.click(`#quizChoices [data-i="${answer}"]`);
+  await page.click("#quizSubmit");
+  if (!(await page.locator("#quizFeedback").textContent()).startsWith("Correct.")) throw new Error("The complete multi-answer selection was rejected");
+  await page.click("#quizContinue");
+  if (await page.evaluate(() => window.multiAnswerResult) !== true) throw new Error("Complete multi-answer callback was not true");
 }
 
 async function chooseScenarioAnswer(page, field) {
@@ -96,9 +131,10 @@ async function completeCall(page, group) {
   });
   if (!Object.values(curriculumCheck.repetition).every(Boolean)) failures.push("A scenario focus is not repeated exactly twice in its group");
   if (!curriculumCheck.reinforcement) failures.push("A missed question was not prioritized for reinforcement");
+  await verifyMultiAnswerFlow(page);
   for (const group of groups) await completeCall(page, group);
   const counts = await page.evaluate(() => Object.fromEntries(Object.entries(window.COOL_CALL_CURRICULUM.scenarios).map(([group, scenarios]) => [group, scenarios.length])));
-  console.log(JSON.stringify({ url, counts, music:{ on:musicOn, off:musicOff }, curriculumCheck, fullCallsCompleted:groups.length }));
+  console.log(JSON.stringify({ url, counts, music:{ on:musicOn, off:musicOff }, curriculumCheck, multiAnswerFlow:true, fullCallsCompleted:groups.length }));
   await page.close();
 
   const phone = await browser.newPage({ viewport:{ width:390, height:844 } });

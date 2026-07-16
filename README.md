@@ -45,17 +45,19 @@ Every guided or coached call presents four knowledge checks. Selection prioritiz
 
 The Markdown sources are normalized into `question-banks.js` by `scripts/build-question-banks.js`. The generated bank currently contains:
 
-- 144 usable, unique Core questions
-- 89 usable, unique Type I questions after removing 25 exact duplicate blocks
+- 146 usable, unique Core questions
+- 88 usable, unique Type I questions after removing 26 exact duplicate blocks
 - 57 Type II questions
 - 42 Type III questions
 
-Two malformed Core multi-select OCR blocks remain in `question-bank-report.json` for editorial review and are not presented by the single-answer game interface. Stable IDs preserve the source group and source-block number.
+The bank includes 38 multi-answer questions: 32 Core and 6 Type I. Prompts marked “Select all that apply,” “Choose all that apply,” or “Select two” use checkboxes and are graded only after Submit Answer is pressed. Stable IDs preserve the source group and source-block number.
 
 After editing a Markdown question source, rebuild the browser bank:
 
 ```powershell
 node scripts/build-question-banks.js
+node scripts/audit-question-banks.js
+node scripts/build-standalone.js
 ```
 
 Run the end-to-end browser smoke test with Playwright available on `NODE_PATH`:
