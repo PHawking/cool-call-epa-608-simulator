@@ -2,6 +2,7 @@
 
 /* Refreshed service-van artwork. Kept dependency-free for local and embedded previews. */
 body .briefing-art .van{width:50%;height:auto;aspect-ratio:2.2/1;left:3%;bottom:5%;filter:drop-shadow(9px 10px 0 #18344b33)}
+body .briefing-art .house,body .briefing-art .van{transform:scaleX(.96);transform-origin:center bottom}
 body .briefing-art .van-body,body .briefing-art .van-cab{bottom:20%;border:4px solid #17334f}
 body .briefing-art .van-body{left:0;width:70%;height:83%;border-radius:16px 5px 3px 3px;background:linear-gradient(180deg,#fffdf2 0 66%,#dcebed 66%);overflow:hidden;display:block}
 body .briefing-art .van-cab{right:0;width:38%;height:64%;border-radius:7px 31px 4px 3px;background:#f6f1df}
