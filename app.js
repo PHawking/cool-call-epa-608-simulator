@@ -34,7 +34,16 @@ const state = {
   completed: new Set(), notes: [], scores: { safety: 100, accuracy: 100, efficiency: 100 }, seconds: 0,
   started: false, xp: loadNumber("coolcall-xp"), mastery: loadObject("coolcall-question-mastery"), quizCallback: null
 };
-const audioState = { enabled: false, context: null };
+const audioState = { enabled: false, context: null, musicTimer: null, musicStartTimer: null, musicStep: 0 };
+const MUSIC_STEP_MS = 190;
+// Original major-key chiptune written for Cool Call; intentionally not based on a recognizable song.
+const MUSIC_MELODY = [
+  1046.5,659.25,783.99,880,783.99,659.25,587.33,659.25,
+  783.99,0,880,783.99,659.25,587.33,523.25,0,
+  659.25,783.99,987.77,880,783.99,659.25,587.33,783.99,
+  1046.5,987.77,880,783.99,659.25,587.33,523.25,0
+];
+const MUSIC_BASS = [261.63,261.63,349.23,392,261.63,349.23,392,392];
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, character => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[character]);
@@ -74,18 +83,55 @@ function playSound(kind="click") {
   (patterns[kind] || patterns.click).forEach(notes => tone(...notes));
 }
 
+function musicTick() {
+  if (!audioState.enabled || document.hidden) return;
+  const step = audioState.musicStep % MUSIC_MELODY.length;
+  const melody = MUSIC_MELODY[step];
+  if (melody) tone(melody, .14, 0, "square", .011);
+  if (step % 4 === 0) {
+    const bass = MUSIC_BASS[Math.floor(step / 4) % MUSIC_BASS.length];
+    tone(bass, .22, 0, "triangle", .009);
+  }
+  audioState.musicStep = (step + 1) % MUSIC_MELODY.length;
+}
+
+function startMusic() {
+  if (!audioState.enabled || document.hidden || audioState.musicTimer) return;
+  musicTick();
+  audioState.musicTimer = window.setInterval(musicTick, MUSIC_STEP_MS);
+}
+
+function stopMusic(reset=true) {
+  if (audioState.musicStartTimer) window.clearTimeout(audioState.musicStartTimer);
+  if (audioState.musicTimer) window.clearInterval(audioState.musicTimer);
+  audioState.musicStartTimer = null;
+  audioState.musicTimer = null;
+  if (reset) audioState.musicStep = 0;
+}
+
+function queueMusicStart() {
+  if (audioState.musicStartTimer) window.clearTimeout(audioState.musicStartTimer);
+  audioState.musicStartTimer = window.setTimeout(() => {
+    audioState.musicStartTimer = null;
+    startMusic();
+  }, 240);
+}
+
 function renderSoundButton() {
   const button = $("soundButton");
   button.textContent = audioState.enabled ? "🔊" : "🔇";
   button.setAttribute("aria-pressed", String(audioState.enabled));
-  button.setAttribute("aria-label", audioState.enabled ? "Turn sound off" : "Turn sound on");
-  button.title = audioState.enabled ? "Sound on" : "Sound off";
+  button.setAttribute("aria-label", audioState.enabled ? "Turn sound and music off" : "Turn sound and music on");
+  button.title = audioState.enabled ? "Sound and music on" : "Sound and music off";
 }
 
 function toggleSound() {
   audioState.enabled = !audioState.enabled;
   renderSoundButton();
-  if (audioState.enabled) playSound("good");
+  if (audioState.enabled) {
+    playSound("good");
+    queueMusicStart();
+  } else stopMusic();
 }
 
 function openModal(dialog) {
@@ -461,6 +507,10 @@ $("randomScenario").onclick = randomScenario;
 $("startButton").onclick = start;
 $("resetButton").onclick = resetCall;
 $("soundButton").onclick = toggleSound;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopMusic(false);
+  else if (audioState.enabled) startMusic();
+});
 $("quizContinue").onclick = () => {
   closeModal(els.quiz);
   if (state.quizCallback) state.quizCallback();
@@ -497,7 +547,7 @@ setInterval(() => {
   els.timer.textContent = `${minutes}:${seconds}`;
 }, 1000);
 
-window.CoolCall = { state, curriculum, questionBanks, buildActions, selectScenarioQuestions };
+window.CoolCall = { state, audioState, curriculum, questionBanks, buildActions, selectScenarioQuestions };
 renderCareer();
 renderScenarioOptions();
 renderSoundButton();

@@ -2,6 +2,8 @@
 
 A responsive, dependency-free prototype of a technical HVAC diagnostic training game.
 
+The sound control enables both gameplay cues and an original, low-volume 8-bit background melody. Music pauses when the browser tab is hidden and resumes when play returns.
+
 ## Run it
 
 Open `index.html` in a modern browser. No build or package installation is required.

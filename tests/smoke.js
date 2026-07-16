@@ -72,6 +72,17 @@ async function completeCall(page, group) {
   page.on("pageerror", error => failures.push(`page: ${error.message}`));
   page.on("response", response => { if (response.status() >= 400) failures.push(`HTTP ${response.status()}: ${response.url()}`); });
   await page.goto(url, { waitUntil:"load" });
+  await page.click("#soundButton");
+  await page.waitForTimeout(350);
+  const musicOn = await page.evaluate(() => ({
+    enabled:window.CoolCall.audioState.enabled,
+    running:Boolean(window.CoolCall.audioState.musicTimer),
+    label:document.getElementById("soundButton").getAttribute("aria-label")
+  }));
+  if (!musicOn.enabled || !musicOn.running || !musicOn.label.includes("off")) failures.push("Sound-on state did not start the music loop");
+  await page.click("#soundButton");
+  const musicOff = await page.evaluate(() => ({ enabled:window.CoolCall.audioState.enabled, running:Boolean(window.CoolCall.audioState.musicTimer) }));
+  if (musicOff.enabled || musicOff.running) failures.push("Sound-off state did not stop the music loop");
   const curriculumCheck = await page.evaluate(() => {
     const repetition = Object.fromEntries(Object.entries(window.COOL_CALL_CURRICULUM.scenarios).map(([group, scenarios]) => {
       const counts = scenarios.reduce((result, scenario) => ({ ...result, [scenario.focus.name]:(result[scenario.focus.name] || 0) + 1 }), {});
@@ -87,7 +98,7 @@ async function completeCall(page, group) {
   if (!curriculumCheck.reinforcement) failures.push("A missed question was not prioritized for reinforcement");
   for (const group of groups) await completeCall(page, group);
   const counts = await page.evaluate(() => Object.fromEntries(Object.entries(window.COOL_CALL_CURRICULUM.scenarios).map(([group, scenarios]) => [group, scenarios.length])));
-  console.log(JSON.stringify({ url, counts, curriculumCheck, fullCallsCompleted:groups.length }));
+  console.log(JSON.stringify({ url, counts, music:{ on:musicOn, off:musicOff }, curriculumCheck, fullCallsCompleted:groups.length }));
   await page.close();
 
   const phone = await browser.newPage({ viewport:{ width:390, height:844 } });
