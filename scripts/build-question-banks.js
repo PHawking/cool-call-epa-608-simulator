@@ -75,6 +75,28 @@ function answerIndex(correct, choices) {
   return best >= 0.72 ? scores.indexOf(best) : -1;
 }
 
+function answerIndices(correct, choices, multiple) {
+  if (!multiple) return [answerIndex(correct, choices)].filter(index => index >= 0);
+
+  const explicitLetters = clean(correct).match(/^([A-D](?:\s*(?:&|,|and)\s*[A-D])+)[.)]?$/i);
+  if (explicitLetters) {
+    return [...new Set(explicitLetters[1].toUpperCase().match(/[A-D]/g).map(letter => letter.charCodeAt(0) - 65))];
+  }
+
+  const matchedSegments = clean(correct)
+    .split(/\s*,\s*/)
+    .map(segment => answerIndex(segment, choices))
+    .filter(index => index >= 0);
+  if (matchedSegments.length > 1) return [...new Set(matchedSegments)];
+
+  const normalized = key(correct);
+  const contained = choices
+    .map((choice, index) => ({ index, value: key(choice) }))
+    .filter(choice => choice.value && (normalized.includes(choice.value) || normalized.replace(/\s/g, "").includes(choice.value.replace(/\s/g, ""))))
+    .map(choice => choice.index);
+  return [...new Set(contained.length ? contained : matchedSegments)];
+}
+
 function parseBank(group, filename) {
   const markdown = fs.readFileSync(path.join(root, filename), "utf8");
   const blocks = markdown.split(/^## Question.*$/gmi).slice(1);
@@ -86,8 +108,9 @@ function parseBank(group, filename) {
     const correct = clean(section(block, "Correct Answer", "Explanation"));
     if (!choices.length && /^(true|false)$/i.test(correct)) choices = ["True", "False"];
     const explanation = clean(section(block, "Explanation"));
-    const answer = answerIndex(correct, choices);
-    if (!question || choices.length < 2 || answer < 0 || answer >= choices.length) {
+    const multiple = /(select all that apply|choose all that apply|select two)/i.test(question);
+    const answers = answerIndices(correct, choices, multiple);
+    if (!question || choices.length < 2 || !answers.length || answers.some(answer => answer < 0 || answer >= choices.length)) {
       rejected.push({ sourceIndex: sourceIndex + 1, question, choices, correct });
       continue;
     }
@@ -96,7 +119,9 @@ function parseBank(group, filename) {
       group,
       question,
       choices,
-      answer,
+      answer: answers[0],
+      answers,
+      multiple,
       explanation
     });
   }
@@ -121,6 +146,7 @@ for (const [group, filename] of Object.entries(sources)) {
   report[group] = {
     blocks: bank.totalBlocks,
     usable: bank.questions.length,
+    multipleAnswer: bank.questions.filter(question => question.multiple).length,
     duplicatesRemoved: bank.duplicates,
     rejected: bank.rejected.length,
     rejectedItems: bank.rejected
@@ -136,5 +162,5 @@ fs.writeFileSync(
 fs.writeFileSync(path.join(root, "question-bank-report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
 
 for (const [group, stats] of Object.entries(report)) {
-  console.log(`${group}: ${stats.usable} usable / ${stats.blocks} blocks; ${stats.duplicatesRemoved} duplicates; ${stats.rejected} rejected`);
+  console.log(`${group}: ${stats.usable} usable / ${stats.blocks} blocks; ${stats.multipleAnswer} multi-answer; ${stats.duplicatesRemoved} duplicates; ${stats.rejected} rejected`);
 }

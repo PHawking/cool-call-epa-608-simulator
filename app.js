@@ -396,22 +396,48 @@ function openChoiceDialog(question, callback, label="EPA 608 KNOWLEDGE CHECK") {
   $("quizQuestion").textContent = question.question;
   $("quizFeedback").hidden = true;
   $("quizContinue").hidden = true;
-  $("quizChoices").innerHTML = question.choices.map((choice, index) => `<button type="button" class="quiz-choice" data-i="${index}">${String.fromCharCode(65 + index)}. ${escapeHtml(choice)}</button>`).join("");
+  const submit = $("quizSubmit");
+  const correctAnswers = question.answers?.length ? question.answers : [question.answer];
+  const isMulti = question.multiple === true;
+  submit.hidden = !isMulti;
+  submit.disabled = true;
+  submit.onclick = null;
   state.quizCallback = callback;
-  $("quizChoices").querySelectorAll("button").forEach(button => button.onclick = () => {
-    const chosen = Number(button.dataset.i);
-    const correct = chosen === question.answer;
+
+  const showResult = (correct, selected) => {
     playSound(correct ? "good" : "warning");
-    $("quizChoices").querySelectorAll("button").forEach((choiceButton, index) => {
-      choiceButton.disabled = true;
-      if (index === question.answer) choiceButton.classList.add("correct");
-      if (index === chosen && !correct) choiceButton.classList.add("wrong");
+    $("quizChoices").querySelectorAll(".quiz-choice").forEach((choiceElement, index) => {
+      const input = choiceElement.querySelector("input");
+      if (input) input.disabled = true;
+      else choiceElement.disabled = true;
+      if (correctAnswers.includes(index)) choiceElement.classList.add("correct");
+      if (selected.includes(index) && !correctAnswers.includes(index)) choiceElement.classList.add("wrong");
     });
     $("quizFeedback").textContent = `${correct ? "Correct. " : "Not quite. "}${question.explanation}`;
     $("quizFeedback").hidden = false;
     $("quizContinue").hidden = false;
+    submit.hidden = true;
     state.quizCallback = () => callback(correct);
-  });
+  };
+
+  if (isMulti) {
+    $("quizChoices").innerHTML = question.choices.map((choice, index) => `<label class="quiz-choice multi-choice" data-i="${index}"><input type="checkbox" value="${index}"><span>${String.fromCharCode(65 + index)}. ${escapeHtml(choice)}</span></label>`).join("");
+    $("quizChoices").querySelectorAll("input").forEach(input => input.onchange = () => {
+      input.closest(".quiz-choice").classList.toggle("selected", input.checked);
+      submit.disabled = !$("quizChoices").querySelector("input:checked");
+    });
+    submit.onclick = () => {
+      const selected = [...$("quizChoices").querySelectorAll("input:checked")].map(input => Number(input.value));
+      const correct = selected.length === correctAnswers.length && selected.every(index => correctAnswers.includes(index));
+      showResult(correct, selected);
+    };
+  } else {
+    $("quizChoices").innerHTML = question.choices.map((choice, index) => `<button type="button" class="quiz-choice" data-i="${index}">${String.fromCharCode(65 + index)}. ${escapeHtml(choice)}</button>`).join("");
+    $("quizChoices").querySelectorAll("button").forEach(button => button.onclick = () => {
+      const chosen = Number(button.dataset.i);
+      showResult(correctAnswers.includes(chosen), [chosen]);
+    });
+  }
   openModal(els.quiz);
 }
 
@@ -547,7 +573,7 @@ setInterval(() => {
   els.timer.textContent = `${minutes}:${seconds}`;
 }, 1000);
 
-window.CoolCall = { state, audioState, curriculum, questionBanks, buildActions, selectScenarioQuestions };
+window.CoolCall = { state, audioState, curriculum, questionBanks, buildActions, selectScenarioQuestions, openChoiceDialog };
 renderCareer();
 renderScenarioOptions();
 renderSoundButton();
