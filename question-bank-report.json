@@ -1,0 +1,53 @@
+{
+  "core": {
+    "blocks": 147,
+    "usable": 144,
+    "duplicatesRemoved": 1,
+    "rejected": 2,
+    "rejectedItems": [
+      {
+        "sourceIndex": 39,
+        "question": "Which of the following scenarios are NOT considered de minimis releases? (\"De minimis” refers to small, unavoidable releases that occur during good-faith attempts to recover/recapture refrigerant, for example, when connecting or disconnecting hoses during servicing.) (Select all that apply.)",
+        "choices": [
+          "Catastrophic failure after operating the equipment well beyond the recommended service/maintenance date",
+          "Asmall amount is released when connecting or disconnecting hoses with low-loss fittings during normal X service",
+          "Releases occur during maintenance because recovery was not performed with certified recovery/recycling equipment (equipment tested and labeled according to EPA requirements)",
+          "brief puff of air is produced when the certified recovery"
+        ],
+        "correct": "A & C"
+      },
+      {
+        "sourceIndex": 49,
+        "question": "Which of the following is considered a de minimis refrigerant release under EPA regulations? (Select all that apply)",
+        "choices": [
+          "Asmall release when connecting hoses with low-loss fittings during normal servicing",
+          "Venting refrigerant because recovery equipment was unavailable",
+          "brief puff released when disconnecting certified recovery equipment after recovery is complete",
+          "Intentionally releasing refrigerant during system"
+        ],
+        "correct": "A small release when connecting hoses with"
+      }
+    ]
+  },
+  "type1": {
+    "blocks": 114,
+    "usable": 89,
+    "duplicatesRemoved": 25,
+    "rejected": 0,
+    "rejectedItems": []
+  },
+  "type2": {
+    "blocks": 57,
+    "usable": 57,
+    "duplicatesRemoved": 0,
+    "rejected": 0,
+    "rejectedItems": []
+  },
+  "type3": {
+    "blocks": 42,
+    "usable": 42,
+    "duplicatesRemoved": 0,
+    "rejected": 0,
+    "rejectedItems": []
+  }
+}

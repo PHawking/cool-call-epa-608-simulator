@@ -20,13 +20,18 @@ GitHub Pages is a good fit because the simulator is a dependency-free static sit
 
 Hosting gives players one consistent HTTPS URL and avoids embedded-preview or `file://` differences. It does not replace browser testing, so the standalone `index.html` remains supported for offline use.
 
-## First playable call
+## Scenario curriculum
 
-- Residential four-ton R-410A split system with a TXV
-- Complaint: long runtime and inadequate cooling
-- Root fault: leaking suction service-port valve core and resulting undercharge
-- Technical evidence: airflow, static pressure, voltage, amperage, capacitance, refrigerant pressures, saturation temperatures, line temperatures, superheat, subcooling, electronic leak detection, and bubble confirmation
-- Correct resolution: replace the leaking core with a valve-core removal tool while minimizing refrigerant release, verify the repair, accurately restore charge, and recommission the system
+Dispatch includes 80 service calls:
+
+- 20 Core fundamentals scenarios
+- 20 Type I small-appliance scenarios
+- 20 Type II high-pressure scenarios
+- 20 Type III low-pressure chiller scenarios
+
+Each group uses ten major skill patterns in two different service contexts. That creates deliberate reinforcement without repeating the same customer, appliance, and evidence word-for-word. A random-call control is also available.
+
+Every guided or coached call presents four knowledge checks. Selection prioritizes missed questions first, then unseen questions, and finally previously mastered material. Type I, II, and III calls include three questions from their certification group and one Core reinforcement question.
 
 ## Mentor modes
 
@@ -34,16 +39,28 @@ Hosting gives players one consistent HTTPS URL and avoids embedded-preview or `f
 - **Coach:** feedback after actions and optional hints
 - **Expert:** no mentor panel or knowledge checks; higher XP multiplier
 
-## Current training content
+## Question banks
 
-The project currently contains:
+The Markdown sources are normalized into `question-banks.js` by `scripts/build-question-banks.js`. The generated bank currently contains:
 
-- 147 Core question blocks
-- 114 Type I question blocks (including 25 groups of exact duplicate question text)
-- 57 Type II question blocks
-- No Type III source file was found as of July 16, 2026
+- 144 usable, unique Core questions
+- 89 usable, unique Type I questions after removing 25 exact duplicate blocks
+- 57 Type II questions
+- 42 Type III questions
 
-The prototype includes two contextual knowledge checks adapted from the supplied Core bank. The next content pass should normalize all question banks into structured JSON, remove exact duplicates, add stable IDs and topic tags, and flag time-sensitive regulatory items for review.
+Two malformed Core multi-select OCR blocks remain in `question-bank-report.json` for editorial review and are not presented by the single-answer game interface. Stable IDs preserve the source group and source-block number.
+
+After editing a Markdown question source, rebuild the browser bank:
+
+```powershell
+node scripts/build-question-banks.js
+```
+
+Run the end-to-end browser smoke test with Playwright available on `NODE_PATH`:
+
+```powershell
+node tests/smoke.js
+```
 
 ## Regulatory content policy
 
@@ -53,12 +70,8 @@ Primary references checked July 16, 2026:
 
 - https://www.epa.gov/section608/stationary-refrigeration-prohibition-venting-refrigerants
 - https://www.epa.gov/section608/regulatory-updates-section-608-refrigerant-management-regulations
+- https://www.epa.gov/section608/section-608-technician-certification-requirements
+- https://www.epa.gov/section608/stationary-refrigeration-service-practice-requirements
+- https://www.epa.gov/section608/required-level-evacuation-appliances
+- https://www.epa.gov/section608/stationary-refrigeration-leak-repair-requirements
 - https://www.epa.gov/sites/production/files/2016-09/documents/608_fact_sheet_technicians_0.pdf
-
-## Suggested next calls
-
-1. Residential electrical fault: weak dual capacitor with normal refrigeration circuit
-2. Residential airflow fault: loaded evaporator and incorrect blower setup
-3. Type I small-appliance recovery call
-4. Type II commercial rooftop call
-5. Type III low-pressure chiller call after its question bank is added
