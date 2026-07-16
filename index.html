@@ -65,6 +65,69 @@ body.dialog-open::before{content:"";position:fixed;inset:0;background:#0b2236b8;
   .mentor-panel:focus-within,.mentor-panel:hover{transform:none}
 }
 @media(max-width:420px){.topbar .icon-button{margin-left:auto}}
+
+/* Top-bound field notebook. */
+.notes-dialog{
+  overflow:visible;
+  border:2px solid #b8aa7d;
+  border-radius:8px 8px 14px 14px;
+  background:#fffdf0;
+  box-shadow:0 30px 90px #071a2b77,8px 9px 0 #6f613733;
+}
+.notes-dialog form{
+  min-height:360px;
+  padding:62px 34px 34px 72px;
+  border-radius:6px 6px 12px 12px;
+  background:
+    linear-gradient(90deg,transparent 0 50px,#d98b87 50px 52px,transparent 52px),
+    repeating-linear-gradient(180deg,#fffdf0 0 30px,#b8d4e3 31px,#fffdf0 32px);
+}
+.notes-dialog form::before{
+  content:"";
+  position:absolute;
+  left:24px;
+  right:24px;
+  top:-22px;
+  height:43px;
+  z-index:3;
+  pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 36%,#344a55 39% 52%,transparent 55%) 0 0/34px 40px repeat-x;
+}
+.notes-dialog form::after{
+  content:"";
+  position:absolute;
+  left:28px;
+  right:28px;
+  top:8px;
+  height:16px;
+  z-index:1;
+  pointer-events:none;
+  background:radial-gradient(circle,#756c55 0 3px,#ece2c1 4px 7px,transparent 8px) 0 0/34px 16px repeat-x;
+}
+.notes-dialog form>*{position:relative;z-index:2}
+.notes-dialog .dialog-close{position:absolute;top:28px;right:18px;z-index:4}
+.notes-dialog .eyebrow{color:#9a5e3e}
+.notes-dialog h2{
+  margin-bottom:24px;
+  font-family:"Segoe Print","Bradley Hand",cursive;
+  transform:rotate(-1deg);
+}
+.notes-dialog #notesList{gap:0}
+.notes-dialog .note-item{
+  border:0;
+  border-bottom:1px solid #9fc5d9;
+  background:#fffdf0cc;
+  padding:8px 10px 9px;
+}
+.notes-dialog #notesList>p{
+  color:#5f655f;
+  font-family:"Segoe Print","Bradley Hand",cursive;
+}
+@media(max-width:560px){
+  .notes-dialog form{padding:58px 22px 28px 54px}
+  .notes-dialog form::before{left:18px;right:18px;background-size:28px 38px}
+  .notes-dialog form::after{left:21px;right:21px;background-size:28px 16px}
+}
   </style>
 </head>
 <body>
