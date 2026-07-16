@@ -64,6 +64,57 @@ const state = { mode: "guide", scene: "customer", completed: new Set(), notes: [
 
 const $ = (id) => document.getElementById(id);
 const els = { briefing: $("briefingPanel"), play: $("playScreen"), taskList: $("taskList"), actionGrid: $("actionGrid"), actionHeading: $("actionHeading"), scene: $("scene"), sceneLabel: $("sceneLabel"), mentorFeed: $("mentorFeed"), timer: $("timer"), quiz: $("quizDialog"), notes: $("notesDialog"), result: $("resultDialog") };
+const audioState = { enabled: false, context: null };
+
+function audioContext() {
+  if (audioState.context) return audioState.context;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return null;
+  audioState.context = new AudioContext();
+  return audioState.context;
+}
+
+function tone(frequency, duration=.08, delay=0, type="sine", volume=.035) {
+  if (!audioState.enabled) return;
+  const context = audioContext();
+  if (!context) return;
+  if (context.state === "suspended") context.resume();
+  const start = context.currentTime + delay;
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  gain.gain.setValueAtTime(.0001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start + .01);
+  gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+  oscillator.connect(gain).connect(context.destination);
+  oscillator.start(start);
+  oscillator.stop(start + duration + .02);
+}
+
+function playSound(kind="click") {
+  const patterns = {
+    click: [[440,.05,0,"sine",.025]],
+    good: [[523,.08,0],[659,.11,.07]],
+    warning: [[230,.13,0,"triangle",.035]],
+    complete: [[523,.1,0],[659,.1,.09],[784,.18,.18]]
+  };
+  (patterns[kind] || patterns.click).forEach(notes => tone(...notes));
+}
+
+function renderSoundButton() {
+  const button = $("soundButton");
+  button.textContent = audioState.enabled ? "🔊" : "🔇";
+  button.setAttribute("aria-pressed", String(audioState.enabled));
+  button.setAttribute("aria-label", audioState.enabled ? "Turn sound off" : "Turn sound on");
+  button.title = audioState.enabled ? "Sound on" : "Sound off";
+}
+
+function toggleSound() {
+  audioState.enabled = !audioState.enabled;
+  renderSoundButton();
+  if (audioState.enabled) playSound("good");
+}
 
 function openModal(dialog) {
   if (!dialog || dialog.open) return;
@@ -118,6 +169,7 @@ function renderActions() {
 
 function switchScene(scene) {
   state.scene = scene;
+  playSound("click");
   els.scene.dataset.scene = scene;
   document.querySelectorAll(".location-tabs button").forEach(b => b.classList.toggle("active", b.dataset.scene === scene));
   const labels = { customer:["Front door","Begin with the customer complaint."], outdoor:["Outdoor condenser","Inspect, measure, and follow the refrigeration evidence."], indoor:["Indoor air handler","Airflow must be proven before condemning the charge."], truck:["Service van","Select safe, appropriate tools for the job."] };
@@ -152,6 +204,7 @@ function doAction(action) {
   if (action.diagnosis) return showDiagnosis();
   if (action.repair) return showRepair();
   complete(action.id);
+  playSound(action.task ? "good" : "click");
   if (action.task) complete(action.task);
   addNote(action.note);
   if (state.mode !== "expert") mentor(action.message, action.task ? "good" : "");
@@ -176,6 +229,7 @@ function openChoiceDialog(q, callback) {
   state.quizCallback = callback;
   $("quizChoices").querySelectorAll("button").forEach(btn => btn.onclick = () => {
     const chosen = Number(btn.dataset.i), correct = chosen === q.answer;
+    playSound(correct ? "good" : "warning");
     $("quizChoices").querySelectorAll("button").forEach((b,i) => { b.disabled=true; if(i===q.answer)b.classList.add("correct"); if(i===chosen&&!correct)b.classList.add("wrong"); });
     $("quizFeedback").textContent = `${correct ? "Correct. " : "Not quite. "}${q.explanation}`; $("quizFeedback").hidden=false; $("quizContinue").hidden=false;
     state.quizCallback = () => callback(correct);
@@ -192,6 +246,7 @@ function showQuiz(index) {
 
 function finishCall() {
   complete("repair");
+  playSound("complete");
   const average = Math.round((state.scores.safety + state.scores.accuracy + state.scores.efficiency) / 3);
   const earned = Math.max(25, Math.round(average * (state.mode === "expert" ? .8 : state.mode === "coach" ? .65 : .5)));
   state.xp += earned; saveXp(state.xp); renderCareer();
@@ -220,6 +275,7 @@ function start() {
 
 $("startButton").onclick=start;
 $("resetButton").onclick=resetCall;
+$("soundButton").onclick=toggleSound;
 $("quizContinue").onclick=()=>{ closeModal(els.quiz); if(state.quizCallback) state.quizCallback(); state.quizCallback=null; };
 $("notebookButton").onclick=()=>{ $("notesList").innerHTML=state.notes.length ? state.notes.map(n=>`<div class="note-item"><b>${n[0]}</b><span>${n[1]}</span></div>`).join("") : "<p>No evidence collected yet.</p>"; openModal(els.notes); };
 $("hintButton").onclick=()=>{ const hints=["Start with the customer's history and thermostat call.","Verify airflow before interpreting refrigerant pressures.","Combine saturation and line temperatures to calculate superheat and subcooling.","The oily service port deserves an electronic and bubble test.","Repair the confirmed leak before restoring charge."]; const done=TASKS.filter(t=>state.completed.has(t.id)).length; mentor(hints[Math.min(done,hints.length-1)],"warning"); state.scores.efficiency=Math.max(0,state.scores.efficiency-2); $("efficiencyScore").textContent=state.scores.efficiency; };
@@ -234,3 +290,4 @@ document.querySelectorAll(".dialog-close").forEach(button => button.addEventList
 document.querySelectorAll(".location-tabs button").forEach(b=>b.onclick=()=>switchScene(b.dataset.scene));
 setInterval(()=>{ if(!state.started||els.play.hidden)return; state.seconds++; const m=String(Math.floor(state.seconds/60)).padStart(2,"0"),s=String(state.seconds%60).padStart(2,"0"); els.timer.textContent=`${m}:${s}`; },1000);
 renderCareer(); renderTasks(); renderActions();
+renderSoundButton();
