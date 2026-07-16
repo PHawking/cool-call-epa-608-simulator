@@ -1,70 +1,44 @@
 "use strict";
 
-const TASKS = [
-  { id: "complaint", label: "Confirm the complaint" },
-  { id: "airflow", label: "Rule out airflow problems" },
-  { id: "electrical", label: "Verify electrical operation" },
-  { id: "refrigerant", label: "Evaluate the refrigeration circuit" },
-  { id: "leak", label: "Locate the refrigerant leak" },
-  { id: "diagnose", label: "Submit a diagnosis" },
-  { id: "repair", label: "Complete a compliant repair" }
-];
+const curriculum = window.COOL_CALL_CURRICULUM;
+const questionBanks = window.EPA_QUESTION_BANKS;
+if (!curriculum || !questionBanks) throw new Error("Cool Call curriculum files did not load.");
 
-const ACTIONS = {
-  customer: [
-    { id: "interview", icon: "💬", title: "Interview customer", detail: "Ask when and how the problem began", task: "complaint", note: ["Customer history", "Runs continuously; cooling declined gradually over two weeks. Filter was changed last month."], message: "Good start. A gradual loss of capacity is evidence—not a diagnosis. Keep the airflow, electrical, and refrigerant branches open." },
-    { id: "thermostat", icon: "🌡️", title: "Read thermostat", detail: "Check setpoint, room temperature and call", note: ["Thermostat", "79°F room, 72°F setpoint; Y1 and G calls active."], message: "The controls are calling for cooling. Now prove what the equipment is doing." }
-  ],
-  indoor: [
-    { id: "filter", icon: "▦", title: "Inspect filter", detail: "Check condition and installation", note: ["Filter", "Clean MERV 8 filter, correctly oriented."], message: "A clean filter removes the most common restriction, but it does not prove airflow." },
-    { id: "temps", icon: "🌡️", title: "Measure air temperatures", detail: "Take return and supply dry-bulb", requires: "filter", note: ["Air temperatures", "Return 79°F DB; supply 67°F DB; temperature split 12°F."], message: "A 12°F split is low for these conditions. That confirms weak sensible capacity, not its cause." },
-    { id: "airflow", icon: "💨", title: "Measure total airflow", detail: "Use static pressure and blower data", requires: "filter", task: "airflow", note: ["Airflow", "0.54 in. w.c. total external static; approximately 1,560 CFM."], message: "About 390 CFM per ton is reasonable. Airflow is unlikely to be the root fault." },
-    { id: "coil", icon: "🧊", title: "Inspect evaporator", detail: "Look for dirt, ice and oil", requires: "filter", note: ["Evaporator", "Coil is clean. No ice. Distributor feeds appear evenly cool."], message: "No obvious indoor coil restriction. Keep following the evidence." }
-  ],
-  outdoor: [
-    { id: "visual", icon: "👁️", title: "Visual inspection", detail: "Check coil, wiring, oil and service ports", note: ["Outdoor inspection", "Condenser coil is clean. Slight oily dust around suction service-port cap."], message: "That oily residue is worth noting. Oil can travel with refrigerant at a leak, but confirm it with an approved method." },
-    { id: "voltage", icon: "⚡", title: "Check voltage & amps", detail: "Use meter and clamp", task: "electrical", note: ["Electrical readings", "243 VAC. Compressor 15.2 A; condenser fan 1.1 A. Both operating."], message: "Electrical operation is normal for the present load. De-energize before resistance or capacitance tests." },
-    { id: "capacitor", icon: "🔋", title: "Test capacitor", detail: "Isolate power, discharge, and measure", requires: "voltage", task: "electrical", note: ["Dual capacitor", "Rated 45/5 µF; measured 44.2/4.9 µF. Within tolerance."], message: "Capacitor passes. Restore power only after covers and leads are secure." },
-    { id: "gauges", icon: "🎛️", title: "Connect digital manifold", detail: "Use low-loss fittings and purge hoses", requires: "visual", note: ["Refrigerant pressures", "R-410A: 102 psig suction / 300 psig liquid. Saturation temperatures: 32°F / 94°F."], message: "Low suction and low head can fit undercharge, but pressures alone are not enough. Add line temperatures." , quiz: 0},
-    { id: "lines", icon: "📏", title: "Clamp line temperatures", detail: "Measure suction and liquid lines", requires: "gauges", task: "refrigerant", note: ["Line temperatures", "Suction line 58°F; liquid line 89°F. Superheat 26°F; subcooling 5°F."], message: "High superheat plus low subcooling, with normal airflow, strongly supports an undercharged TXV system." },
-    { id: "detector", icon: "📡", title: "Electronic leak search", detail: "Sweep likely leak points slowly", requires: "lines", task: "leak", note: ["Leak test", "Repeated detector response at suction service-port valve core; bubble test confirms leak."], message: "Leak confirmed at the valve core. Repair the leak before adding refrigerant." , quiz: 1},
-    { id: "diagnose", icon: "📝", title: "Submit diagnosis", detail: "Choose the fault supported by evidence", requires: "detector", task: "diagnose", diagnosis: true },
-    { id: "repair", icon: "🔧", title: "Repair & commission", detail: "Choose a compliant service procedure", requires: "diagnose", task: "repair", repair: true }
-  ],
-  truck: [
-    { id: "inventory", icon: "🧰", title: "Check truck stock", detail: "Review available service tools", note: ["Truck inventory", "Digital manifold, clamps, meter, leak detector, bubbles, core tool, recovery setup, nitrogen, vacuum pump, micron gauge, scale."], message: "Use the least invasive tool that can produce reliable evidence." },
-    { id: "ppe", icon: "🥽", title: "Put on PPE", detail: "Gloves and safety glasses", note: ["Safety", "Safety glasses and refrigerant-rated gloves equipped."], message: "Good. Liquid R-410A can cause severe frostbite, and pressurized work needs eye protection." }
-  ]
+const TASK_IDS = ["intake", "identify", "safety", "inspect", "procedure", "diagnose", "repair"];
+const $ = id => document.getElementById(id);
+const els = {
+  briefing: $("briefingPanel"), play: $("playScreen"), taskList: $("taskList"), actionGrid: $("actionGrid"),
+  actionHeading: $("actionHeading"), scene: $("scene"), sceneLabel: $("sceneLabel"), mentorFeed: $("mentorFeed"),
+  timer: $("timer"), quiz: $("quizDialog"), notes: $("notesDialog"), result: $("resultDialog")
 };
 
-const QUIZZES = [
-  { question: "Equipment has to be certified to EPA standards in order to recover which refrigerants?", choices: ["CFCs only", "HCFCs only", "HFCs only", "CFCs, HCFCs, and HFCs"], answer: 3, explanation: "Recovery equipment used for ozone-depleting refrigerants and non-exempt substitutes must meet EPA requirements. This item is adapted from your Core question bank." },
-  { question: "Before opening equipment in a way that would release a non-exempt refrigerant, what does the venting prohibition require?", choices: ["Dilute it with nitrogen", "Recover the affected refrigerant", "Release only vapor", "No action for residential systems"], answer: 1, explanation: "Affected refrigerant must be recovered using compliant practices. De minimis releases during a good-faith recovery attempt are treated differently from intentional venting. Adapted from your Core question bank." }
-];
-
-function loadXp() {
+function loadNumber(key, fallback=0) {
   try {
-    const savedXp = Number(localStorage.getItem("coolcall-xp"));
-    return Number.isFinite(savedXp) && savedXp >= 0 ? savedXp : 0;
-  } catch {
-    // Some local and embedded previews block storage. Progress can still live in memory.
-    return 0;
-  }
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) && value >= 0 ? value : fallback;
+  } catch { return fallback; }
 }
 
-function saveXp(xp) {
-  try {
-    localStorage.setItem("coolcall-xp", String(xp));
-  } catch {
-    // Do not interrupt a completed call when persistent storage is unavailable.
-  }
+function loadObject(key) {
+  try { return JSON.parse(localStorage.getItem(key) || "{}"); }
+  catch { return {}; }
 }
 
-const state = { mode: "guide", scene: "customer", completed: new Set(), notes: [], scores: { safety: 100, accuracy: 100, efficiency: 100 }, seconds: 0, started: false, xp: loadXp(), quizCallback: null };
+function saveValue(key, value) {
+  try { localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value)); }
+  catch { /* Storage can be blocked in embedded previews. */ }
+}
 
-const $ = (id) => document.getElementById(id);
-const els = { briefing: $("briefingPanel"), play: $("playScreen"), taskList: $("taskList"), actionGrid: $("actionGrid"), actionHeading: $("actionHeading"), scene: $("scene"), sceneLabel: $("sceneLabel"), mentorFeed: $("mentorFeed"), timer: $("timer"), quiz: $("quizDialog"), notes: $("notesDialog"), result: $("resultDialog") };
+const state = {
+  mode: "guide", group: "core", scenarioIndex: 0, scenario: null, actions: {}, questions: [], scene: "customer",
+  completed: new Set(), notes: [], scores: { safety: 100, accuracy: 100, efficiency: 100 }, seconds: 0,
+  started: false, xp: loadNumber("coolcall-xp"), mastery: loadObject("coolcall-question-mastery"), quizCallback: null
+};
 const audioState = { enabled: false, context: null };
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[character]);
+}
 
 function audioContext() {
   if (audioState.context) return audioState.context;
@@ -94,10 +68,8 @@ function tone(frequency, duration=.08, delay=0, type="sine", volume=.035) {
 
 function playSound(kind="click") {
   const patterns = {
-    click: [[440,.05,0,"sine",.025]],
-    good: [[523,.08,0],[659,.11,.07]],
-    warning: [[230,.13,0,"triangle",.035]],
-    complete: [[523,.1,0],[659,.1,.09],[784,.18,.18]]
+    click: [[440,.05,0,"sine",.025]], good: [[523,.08,0],[659,.11,.07]],
+    warning: [[230,.13,0,"triangle",.035]], complete: [[523,.1,0],[659,.1,.09],[784,.18,.18]]
   };
   (patterns[kind] || patterns.click).forEach(notes => tone(...notes));
 }
@@ -119,13 +91,8 @@ function toggleSound() {
 function openModal(dialog) {
   if (!dialog || dialog.open) return;
   try {
-    if (typeof dialog.showModal === "function") {
-      dialog.showModal();
-      return;
-    }
-  } catch {
-    // Embedded previews can expose <dialog> without allowing showModal().
-  }
+    if (typeof dialog.showModal === "function") { dialog.showModal(); return; }
+  } catch { /* Embedded previews can expose dialog without allowing showModal. */ }
   dialog.setAttribute("open", "");
   dialog.classList.add("dialog-fallback");
   document.body.classList.add("dialog-open");
@@ -135,113 +102,283 @@ function closeModal(dialog) {
   if (!dialog) return;
   if (typeof dialog.close === "function") {
     try { dialog.close(); } catch { dialog.removeAttribute("open"); }
-  } else {
-    dialog.removeAttribute("open");
-  }
+  } else dialog.removeAttribute("open");
   dialog.classList.remove("dialog-fallback");
   if (!document.querySelector(".dialog-fallback[open]")) document.body.classList.remove("dialog-open");
 }
 
 function renderCareer() {
   const ranks = [[0,"APPRENTICE"],[100,"JUNIOR TECH"],[250,"EPA CERTIFIED"],[500,"SENIOR TECH"]];
-  const rank = [...ranks].reverse().find(([n]) => state.xp >= n);
-  const next = ranks.find(([n]) => n > state.xp) || [750,"MASTER TECH"];
+  const rank = [...ranks].reverse().find(([minimum]) => state.xp >= minimum);
+  const next = ranks.find(([minimum]) => minimum > state.xp) || [750,"MASTER TECH"];
   $("rankLabel").textContent = rank[1];
   $("xpLabel").textContent = `${state.xp} / ${next[0]} XP`;
-  const previous = rank[0];
-  $("xpBar").style.width = `${Math.min(100, ((state.xp - previous) / (next[0] - previous)) * 100)}%`;
+  $("xpBar").style.width = `${Math.min(100, ((state.xp - rank[0]) / (next[0] - rank[0])) * 100)}%`;
+}
+
+function shuffled(values) {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index--) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [result[index], result[swap]] = [result[swap], result[index]];
+  }
+  return result;
+}
+
+function masteryFor(id) {
+  return state.mastery[id] || { seen: 0, correct: 0 };
+}
+
+function masteryStatus(progress) {
+  if (!progress.seen) return 1;
+  const lastCorrect = progress.lastCorrect ?? progress.seen === progress.correct;
+  return lastCorrect ? 2 : 0;
+}
+
+function pickQuestions(bank, count, excluded=new Set()) {
+  return shuffled(bank.filter(question => !excluded.has(question.id)))
+    .sort((left, right) => {
+      const a = masteryFor(left.id), b = masteryFor(right.id);
+      return masteryStatus(a) - masteryStatus(b) || a.seen - b.seen || a.correct - b.correct;
+    })
+    .slice(0, count);
+}
+
+function selectScenarioQuestions(group) {
+  if (group === "core") return pickQuestions(questionBanks.core, 4);
+  const selected = pickQuestions(questionBanks[group], 3);
+  const excluded = new Set(selected.map(question => question.id));
+  return [...selected, ...pickQuestions(questionBanks.core, 1, excluded)];
+}
+
+function recordQuestion(question, correct) {
+  const progress = masteryFor(question.id);
+  state.mastery[question.id] = { seen: progress.seen + 1, correct: progress.correct + (correct ? 1 : 0), lastCorrect: correct };
+  saveValue("coolcall-question-mastery", state.mastery);
+}
+
+function groupMastery(group) {
+  const bank = questionBanks[group];
+  const mastered = bank.filter(question => {
+    const progress = masteryFor(question.id);
+    return progress.seen > 0 && (progress.lastCorrect ?? progress.seen === progress.correct);
+  }).length;
+  return { mastered, total: bank.length };
+}
+
+function renderScenarioOptions() {
+  const group = $("certificationGroup").value;
+  const scenarios = curriculum.scenarios[group];
+  $("scenarioSelect").innerHTML = scenarios.map((scenario, index) => `<option value="${index}">${String(index + 1).padStart(2,"0")} · ${escapeHtml(scenario.title)}</option>`).join("");
+  state.group = group;
+  state.scenarioIndex = 0;
+  updateBriefing();
+}
+
+function updateBriefing() {
+  const group = $("certificationGroup").value;
+  const scenarioIndex = Number($("scenarioSelect").value || 0);
+  const scenario = curriculum.scenarios[group][scenarioIndex];
+  const progress = groupMastery(group);
+  state.group = group;
+  state.scenarioIndex = scenarioIndex;
+  $("briefingEyebrow").textContent = `${curriculum.groups[group].label.toUpperCase()} · CALL ${String(scenarioIndex + 1).padStart(2,"0")} OF ${curriculum.scenarios[group].length}`;
+  $("briefingTitle").textContent = scenario.title;
+  $("briefingDescription").textContent = `${scenario.site}: ${scenario.complaint} Diagnose and complete the call using ${curriculum.groups[group].name} practices.`;
+  $("systemTags").innerHTML = scenario.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("");
+  $("scenarioSummary").textContent = `${curriculum.scenarios[group].length} scenarios · ${questionBanks[group].length} unique questions · ${progress.mastered} mastered`;
+}
+
+function randomScenario() {
+  const select = $("scenarioSelect");
+  const count = select.options.length;
+  let next = Math.floor(Math.random() * count);
+  if (count > 1 && next === Number(select.value)) next = (next + 1) % count;
+  select.value = String(next);
+  updateBriefing();
+  playSound("click");
+}
+
+function currentTasks() {
+  return curriculum.groups[state.group].tasks.map((label, index) => ({ id: TASK_IDS[index], label }));
 }
 
 function renderTasks() {
-  els.taskList.innerHTML = TASKS.map((t,i) => `<li data-step="${i+1}" class="${state.completed.has(t.id) ? "done" : ""}">${t.label}</li>`).join("");
+  els.taskList.innerHTML = currentTasks().map((task, index) => `<li data-step="${index + 1}" class="${state.completed.has(task.id) ? "done" : ""}">${escapeHtml(task.label)}</li>`).join("");
+}
+
+function actionNames(group) {
+  if (group === "core") return { inspect:"Review service conditions", measure:"Check rule & equipment", confirm:"Verify compliant plan", location:"Service area" };
+  if (group === "type1") return { inspect:"Inspect sealed system", measure:"Perform recovery checks", confirm:"Confirm recovery endpoint", location:"Recovery station" };
+  if (group === "type3") return { inspect:"Inspect chiller & purge", measure:"Test low-pressure system", confirm:"Confirm chiller evidence", location:"Machine room" };
+  return { inspect:"Inspect heat-transfer path", measure:"Measure operating circuit", confirm:"Confirm the fault", location:"Mechanical area" };
+}
+
+function buildActions(scenario) {
+  const focus = scenario.focus;
+  const names = actionNames(scenario.group);
+  const equipmentNote = `${scenario.equipment}; ${scenario.refrigerant}; nameplate charge ${scenario.charge}.`;
+  return {
+    customer: [
+      { id:"interview", icon:"💬", title:"Review work order", detail:"Confirm the complaint and service history", task:"intake", note:["Service request", `${scenario.site}: ${scenario.complaint}`], message:"Start with the reported symptom, but keep multiple causes open until the evidence agrees." },
+      { id:"identify", icon:"🏷️", title:"Identify equipment", detail:"Read the nameplate and classify the appliance", requires:"interview", task:"identify", note:["Equipment identification", equipmentNote], message:`This is a ${curriculum.groups[scenario.group].label.toLowerCase()} scenario. Appliance and refrigerant identification determine the safe procedure.`, quizSlot:0 }
+    ],
+    indoor: [
+      { id:"inspect", icon:"👁️", title:names.inspect, detail:"Look for physical evidence before connecting tools", requires:"identify", task:"inspect", note:["Physical inspection", focus.visual], message:"Physical evidence narrows the call, but it still needs operating or procedural confirmation.", quizSlot:1 }
+    ],
+    outdoor: [
+      { id:"measure", icon:"🎛️", title:names.measure, detail:"Collect the decisive operating or compliance evidence", requires:"inspect", note:["Operating evidence", focus.operating], message:"Use the complete pattern—not a single pressure, temperature, or rule fragment.", quizSlot:2 },
+      { id:"confirm", icon:"📡", title:names.confirm, detail:"Use an independent check before deciding", requires:"measure", task:"procedure", note:["Confirmation", focus.confirm], message:"The independent check now supports a defensible decision.", quizSlot:3 },
+      { id:"diagnose", icon:"📝", title:"Submit decision", detail:"Choose the conclusion supported by all evidence", requires:"confirm", diagnosis:true },
+      { id:"repair", icon:"🔧", title:"Complete & document", detail:"Choose the compliant corrective procedure", requires:"diagnose", repair:true }
+    ],
+    truck: [
+      { id:"inventory", icon:"🧰", title:"Check service equipment", detail:"Verify recovery, test, and commissioning tools", note:["Service equipment", `Certified recovery equipment, compatible cylinder, scale, test instruments, dry nitrogen, evacuation tools, and manufacturer information prepared for ${scenario.refrigerant}.`], message:"Tool selection is part of the procedure. Confirm compatibility before making a connection." },
+      { id:"ppe", icon:"🥽", title:"Establish safe conditions", detail:"Review the SDS, PPE, ventilation, and energy controls", task:"safety", note:["Safety setup", `SDS reviewed for ${scenario.refrigerant}; eye and hand protection, ventilation, ignition controls, and lockout needs addressed.`], message:"Safe conditions are established before the refrigerant circuit is opened or pressurized." }
+    ]
+  };
 }
 
 function renderActions() {
-  const actions = ACTIONS[state.scene];
-  els.actionHeading.textContent = document.querySelector(`[data-scene="${state.scene}"]`).textContent;
-  els.actionGrid.innerHTML = actions.map(a => {
-    const complete = state.completed.has(a.id);
-    const locked = a.requires && !state.completed.has(a.requires);
-    return `<button class="action-card ${complete ? "complete" : ""}" data-action="${a.id}" ${locked ? "disabled" : ""}><span class="action-icon">${a.icon}</span><b>${complete ? "✓ " : ""}${a.title}</b><small>${locked ? "Complete the previous test first" : a.detail}</small></button>`;
+  const actions = state.actions[state.scene] || [];
+  const activeTab = document.querySelector(`.location-tabs [data-scene="${state.scene}"]`);
+  els.actionHeading.textContent = activeTab ? activeTab.textContent : state.scene;
+  els.actionGrid.innerHTML = actions.map(action => {
+    const complete = state.completed.has(action.id);
+    const locked = action.requires && !state.completed.has(action.requires);
+    return `<button class="action-card ${complete ? "complete" : ""}" data-action="${action.id}" ${locked ? "disabled" : ""}><span class="action-icon">${action.icon}</span><b>${complete ? "✓ " : ""}${escapeHtml(action.title)}</b><small>${locked ? "Complete the previous step first" : escapeHtml(action.detail)}</small></button>`;
   }).join("");
-  els.actionGrid.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => doAction(actions.find(a => a.id === btn.dataset.action))));
+  els.actionGrid.querySelectorAll("button").forEach(button => button.addEventListener("click", () => doAction(actions.find(action => action.id === button.dataset.action))));
+}
+
+function renderSceneTabs() {
+  const scenes = curriculum.groups[state.group].scenes;
+  const sceneIds = ["customer", "indoor", "outdoor", "truck"];
+  sceneIds.forEach((sceneId, index) => {
+    const button = document.querySelector(`.location-tabs [data-scene="${sceneId}"]`);
+    button.textContent = scenes[index][0];
+  });
 }
 
 function switchScene(scene) {
   state.scene = scene;
   playSound("click");
   els.scene.dataset.scene = scene;
-  document.querySelectorAll(".location-tabs button").forEach(b => b.classList.toggle("active", b.dataset.scene === scene));
-  const labels = { customer:["Front door","Begin with the customer complaint."], outdoor:["Outdoor condenser","Inspect, measure, and follow the refrigeration evidence."], indoor:["Indoor air handler","Airflow must be proven before condemning the charge."], truck:["Service van","Select safe, appropriate tools for the job."] };
-  els.sceneLabel.innerHTML = `<b>${labels[scene][0]}</b><span>${labels[scene][1]}</span>`;
+  els.scene.dataset.group = state.group;
+  document.querySelectorAll(".location-tabs button").forEach(button => button.classList.toggle("active", button.dataset.scene === scene));
+  const index = ["customer", "indoor", "outdoor", "truck"].indexOf(scene);
+  const label = curriculum.groups[state.group].scenes[index];
+  els.sceneLabel.innerHTML = `<b>${escapeHtml(label[0])}</b><span>${escapeHtml(label[1])}</span>`;
   renderActions();
 }
 
 function mentor(text, kind="") {
   if (state.mode === "expert" && kind !== "system") return;
-  const div = document.createElement("div");
-  div.className = `mentor-message ${kind}`;
-  div.innerHTML = `${text}<small>RAY · JUST NOW</small>`;
-  els.mentorFeed.append(div);
+  const message = document.createElement("div");
+  message.className = `mentor-message ${kind}`;
+  message.innerHTML = `${escapeHtml(text)}<small>RAY · JUST NOW</small>`;
+  els.mentorFeed.append(message);
   els.mentorFeed.scrollTop = els.mentorFeed.scrollHeight;
 }
 
 function addNote(note) {
-  if (!note || state.notes.some(n => n[0] === note[0])) return;
+  if (!note || state.notes.some(existing => existing[0] === note[0])) return;
   state.notes.push(note);
   $("noteCount").textContent = state.notes.length;
 }
 
-function complete(id) { state.completed.add(id); renderTasks(); renderActions(); }
-function penalize(type, amount, why) { state.scores[type] = Math.max(0, state.scores[type] - amount); $(`${type}Score`).textContent = state.scores[type]; mentor(why, "warning"); }
+function complete(id) {
+  state.completed.add(id);
+  renderTasks();
+  renderActions();
+}
+
+function penalize(type, amount, why) {
+  state.scores[type] = Math.max(0, state.scores[type] - amount);
+  $(`${type}Score`).textContent = state.scores[type];
+  mentor(why, "warning");
+}
 
 function doAction(action) {
-  if (state.completed.has(action.id) && !action.diagnosis && !action.repair) { mentor("You already have that evidence in your field notes."); return; }
-  if (state.mode === "guide") {
-    const pre = { gauges:"Before connecting, verify the refrigerant and use low-loss fittings. Purge air from hoses without deliberately releasing the system charge.", detector:"Search only after operating data points to a charge issue. Move the probe slowly and confirm any response.", capacitor:"Kill power, verify zero volts, and discharge the capacitor safely before measuring it." }[action.id];
-    if (pre) mentor(pre, "warning");
+  if (state.completed.has(action.id) && !action.diagnosis && !action.repair) {
+    mentor("You already have that evidence in your field notes.");
+    return;
   }
   if (action.diagnosis) return showDiagnosis();
   if (action.repair) return showRepair();
+  if (["inspect", "measure", "confirm"].includes(action.id) && !state.completed.has("ppe")) {
+    penalize("safety", 6, "You began equipment-side work before documenting PPE, refrigerant hazards, and energy controls.");
+  }
   complete(action.id);
   playSound(action.task ? "good" : "click");
   if (action.task) complete(action.task);
   addNote(action.note);
   if (state.mode !== "expert") mentor(action.message, action.task ? "good" : "");
-  if (Number.isInteger(action.quiz) && state.mode !== "expert") showQuiz(action.quiz);
-  if (action.id === "gauges" && !state.completed.has("ppe")) penalize("safety", 8, "You connected to a high-pressure system without first documenting PPE. Gloves and eye protection belong on before opening the service kit.");
+  if (Number.isInteger(action.quizSlot) && state.mode !== "expert") showQuiz(state.questions[action.quizSlot]);
+}
+
+function choiceQuestion(question, correct, distractors, explanation) {
+  const choices = shuffled([correct, ...distractors.slice(0, 3)]);
+  return { question, choices, answer: choices.indexOf(correct), explanation };
 }
 
 function showDiagnosis() {
-  const q = { question:"Which diagnosis best fits all collected evidence?", choices:["Restricted return airflow","Weak run capacitor","Undercharge from a leaking suction service-port core","Overcharged system with a dirty condenser"], answer:2, explanation:"Normal airflow and electrical operation rule out the first two. Low suction, low head, high superheat, low subcooling, oily residue, and a confirmed detector/bubble response identify an undercharge caused by the leaking valve core." };
-  openChoiceDialog(q, correct => { if (correct) { complete("diagnose"); mentor("Diagnosis supported. A technician repairs the verified leak before restoring charge.","good"); } else penalize("accuracy",15,"That choice conflicts with at least two measurements. Review the notebook and use all the evidence, not one pressure."); });
+  const focus = state.scenario.focus;
+  const question = choiceQuestion("Which diagnosis or service decision best fits all collected evidence?", focus.diagnosis, focus.distractors, focus.explanation);
+  openChoiceDialog(question, correct => {
+    if (correct) {
+      complete("diagnose");
+      mentor("Decision supported. Now choose the corrective procedure that controls refrigerant and verifies the result.", "good");
+    } else penalize("accuracy", 15, "That choice conflicts with the collected evidence. Review the field notebook and use the complete pattern.");
+  }, `${curriculum.groups[state.group].name} SCENARIO DECISION`);
 }
 
 function showRepair() {
-  const q = { question:"Choose the best repair and commissioning plan.", choices:["Add R-410A until suction pressure looks normal; leave the leak for later","Vent the remaining charge, replace the core, and recharge","Use a valve-core removal tool to replace the leaking core with minimal release; verify leak-free operation, weigh in the required R-410A, and confirm final performance","Add leak sealant and tighten the cap"], answer:2, explanation:"A core tool allows the failed core to be replaced while minimizing release. The leak is then verified, charge is restored accurately, caps are installed, and operating performance is confirmed. Intentional venting of R-410A is prohibited." };
-  openChoiceDialog(q, correct => { if (correct) finishCall(); else { penalize("safety",20,"That procedure either vents refrigerant or fails to repair the confirmed leak. R-410A is a non-exempt substitute under the venting prohibition."); penalize("accuracy",10,"Charging by pressure alone is not a complete commissioning method."); } });
+  const focus = state.scenario.focus;
+  const question = choiceQuestion("Choose the best corrective and commissioning plan.", focus.repair, focus.repairDistractors, focus.explanation);
+  openChoiceDialog(question, correct => {
+    if (correct) finishCall();
+    else {
+      penalize("safety", 15, "That procedure does not adequately control the refrigerant or service hazard.");
+      penalize("accuracy", 10, "The repair must correct the verified cause and include final verification.");
+    }
+  }, `${curriculum.groups[state.group].name} SERVICE PROCEDURE`);
 }
 
-function openChoiceDialog(q, callback) {
-  $("quizQuestion").textContent = q.question;
-  $("quizFeedback").hidden = true; $("quizContinue").hidden = true;
-  $("quizChoices").innerHTML = q.choices.map((c,i) => `<button type="button" class="quiz-choice" data-i="${i}">${String.fromCharCode(65+i)}. ${c}</button>`).join("");
+function openChoiceDialog(question, callback, label="EPA 608 KNOWLEDGE CHECK") {
+  els.quiz.querySelector(".eyebrow").textContent = label;
+  $("quizQuestion").textContent = question.question;
+  $("quizFeedback").hidden = true;
+  $("quizContinue").hidden = true;
+  $("quizChoices").innerHTML = question.choices.map((choice, index) => `<button type="button" class="quiz-choice" data-i="${index}">${String.fromCharCode(65 + index)}. ${escapeHtml(choice)}</button>`).join("");
   state.quizCallback = callback;
-  $("quizChoices").querySelectorAll("button").forEach(btn => btn.onclick = () => {
-    const chosen = Number(btn.dataset.i), correct = chosen === q.answer;
+  $("quizChoices").querySelectorAll("button").forEach(button => button.onclick = () => {
+    const chosen = Number(button.dataset.i);
+    const correct = chosen === question.answer;
     playSound(correct ? "good" : "warning");
-    $("quizChoices").querySelectorAll("button").forEach((b,i) => { b.disabled=true; if(i===q.answer)b.classList.add("correct"); if(i===chosen&&!correct)b.classList.add("wrong"); });
-    $("quizFeedback").textContent = `${correct ? "Correct. " : "Not quite. "}${q.explanation}`; $("quizFeedback").hidden=false; $("quizContinue").hidden=false;
+    $("quizChoices").querySelectorAll("button").forEach((choiceButton, index) => {
+      choiceButton.disabled = true;
+      if (index === question.answer) choiceButton.classList.add("correct");
+      if (index === chosen && !correct) choiceButton.classList.add("wrong");
+    });
+    $("quizFeedback").textContent = `${correct ? "Correct. " : "Not quite. "}${question.explanation}`;
+    $("quizFeedback").hidden = false;
+    $("quizContinue").hidden = false;
     state.quizCallback = () => callback(correct);
   });
   openModal(els.quiz);
 }
 
-function showQuiz(index) {
-  openChoiceDialog(QUIZZES[index], correct => {
-    if (correct) { state.xp += 5; renderCareer(); mentor("EPA knowledge check passed: +5 XP.","good"); }
-    else penalize("accuracy",5,"Review that EPA point. The field procedure and the regulation need to agree.");
-  });
+function showQuiz(question) {
+  if (!question) return;
+  openChoiceDialog(question, correct => {
+    recordQuestion(question, correct);
+    if (correct) {
+      state.xp += 5;
+      renderCareer();
+      mentor("Knowledge check passed: +5 XP.", "good");
+    } else penalize("accuracy", 5, "That question is marked for reinforcement and will return in a later call.");
+  }, `${curriculum.groups[question.group].name.toUpperCase()} KNOWLEDGE CHECK · ${question.id.toUpperCase()}`);
 }
 
 function finishCall() {
@@ -249,37 +386,101 @@ function finishCall() {
   playSound("complete");
   const average = Math.round((state.scores.safety + state.scores.accuracy + state.scores.efficiency) / 3);
   const earned = Math.max(25, Math.round(average * (state.mode === "expert" ? .8 : state.mode === "coach" ? .65 : .5)));
-  state.xp += earned; saveXp(state.xp); renderCareer();
+  state.xp += earned;
+  saveValue("coolcall-xp", String(state.xp));
+  renderCareer();
   $("resultTitle").textContent = average >= 90 ? "Clean work, technician!" : average >= 75 ? "Call completed" : "Repair complete—review needed";
-  $("resultText").textContent = `You traced the capacity loss to a leaking suction service-port core, repaired it without intentional venting, restored the charge, and verified operation. You earned ${earned} XP.`;
-  $("resultScores").innerHTML = Object.entries(state.scores).map(([k,v]) => `<div><b>${v}</b><span>${k}</span></div>`).join("");
+  $("resultText").textContent = `${state.scenario.title}: ${state.scenario.focus.diagnosis} You completed the corrective plan and earned ${earned} XP.`;
+  $("resultScores").innerHTML = Object.entries(state.scores).map(([key, value]) => `<div><b>${value}</b><span>${escapeHtml(key)}</span></div>`).join("");
   setTimeout(() => openModal(els.result), 250);
 }
 
 function resetCall() {
-  state.completed.clear(); state.notes=[]; state.seconds=0; state.scores={safety:100,accuracy:100,efficiency:100};
-  ["safety","accuracy","efficiency"].forEach(k => $(`${k}Score`).textContent=100);
-  $("noteCount").textContent=0; els.mentorFeed.innerHTML=""; renderTasks(); switchScene("customer");
-  if (state.mode !== "expert") mentor("New call. Start with the complaint, establish safe conditions, then diagnose from measured evidence.","system");
-  if (state.mode === "guide") mentor("EPA briefing: intentionally venting R-410A can bring serious civil enforcement and penalties. “Natural” does not automatically mean exempt—CO₂, ammonia, water, nitrogen, and certain hydrocarbons are exempt only in the uses specified by EPA rules. Always identify the refrigerant and end use.","warning");
+  state.completed.clear();
+  state.notes = [];
+  state.seconds = 0;
+  state.scores = { safety: 100, accuracy: 100, efficiency: 100 };
+  ["safety", "accuracy", "efficiency"].forEach(key => $(`${key}Score`).textContent = 100);
+  $("noteCount").textContent = 0;
+  els.mentorFeed.innerHTML = "";
+  renderTasks();
+  renderSceneTabs();
+  switchScene("customer");
+  if (state.mode !== "expert") mentor(`${state.scenario.title}. Start with identification and safety, then make every decision from evidence.`, "system");
+  if (state.mode === "guide") {
+    const reminders = {
+      core:"Identify the refrigerant, appliance category, hazards, and required recovery method before opening the circuit.",
+      type1:"Small-appliance recovery depends on recovery-equipment age and whether the appliance compressor operates; four inches Hg vacuum is an alternative endpoint.",
+      type2:"Prove load, airflow, and heat transfer before interpreting refrigerant pressures or changing charge.",
+      type3:"A low-pressure chiller normally operates below atmospheric pressure, so leaks can pull air and moisture inward."
+    };
+    mentor(reminders[state.group], "warning");
+  }
+}
+
+function prepareScenario() {
+  state.group = $("certificationGroup").value;
+  state.scenarioIndex = Number($("scenarioSelect").value);
+  state.scenario = curriculum.scenarios[state.group][state.scenarioIndex];
+  state.actions = buildActions(state.scenario);
+  state.questions = selectScenarioQuestions(state.group);
+  document.body.dataset.trainingGroup = state.group;
+  $("jobTitle").textContent = state.scenario.site;
+  $("customerAvatar").textContent = state.scenario.avatar;
+  $("customerName").textContent = state.scenario.customer;
+  $("customerQuote").textContent = `“${state.scenario.quote}”`;
+  $("activeScenarioLabel").textContent = `${curriculum.groups[state.group].name} · ${String(state.scenarioIndex + 1).padStart(2,"0")}/${curriculum.scenarios[state.group].length}`;
 }
 
 function start() {
   state.mode = document.querySelector('input[name="mentor"]:checked').value;
-  state.started = true; els.briefing.hidden=true; els.play.hidden=false;
-  requestAnimationFrame(() => els.play.scrollIntoView({ behavior: "smooth", block: "start" }));
-  $("mentorModeLabel").textContent = ({guide:"Guided mentor",coach:"After-action coach",expert:"Expert mode"})[state.mode];
+  prepareScenario();
+  state.started = true;
+  els.briefing.hidden = true;
+  els.play.hidden = false;
+  requestAnimationFrame(() => els.play.scrollIntoView({ behavior:"smooth", block:"start" }));
+  $("mentorModeLabel").textContent = ({ guide:"Guided mentor", coach:"After-action coach", expert:"Expert mode" })[state.mode];
   $("mentorPanel").hidden = state.mode === "expert";
   resetCall();
 }
 
-$("startButton").onclick=start;
-$("resetButton").onclick=resetCall;
-$("soundButton").onclick=toggleSound;
-$("quizContinue").onclick=()=>{ closeModal(els.quiz); if(state.quizCallback) state.quizCallback(); state.quizCallback=null; };
-$("notebookButton").onclick=()=>{ $("notesList").innerHTML=state.notes.length ? state.notes.map(n=>`<div class="note-item"><b>${n[0]}</b><span>${n[1]}</span></div>`).join("") : "<p>No evidence collected yet.</p>"; openModal(els.notes); };
-$("hintButton").onclick=()=>{ const hints=["Start with the customer's history and thermostat call.","Verify airflow before interpreting refrigerant pressures.","Combine saturation and line temperatures to calculate superheat and subcooling.","The oily service port deserves an electronic and bubble test.","Repair the confirmed leak before restoring charge."]; const done=TASKS.filter(t=>state.completed.has(t.id)).length; mentor(hints[Math.min(done,hints.length-1)],"warning"); state.scores.efficiency=Math.max(0,state.scores.efficiency-2); $("efficiencyScore").textContent=state.scores.efficiency; };
-$("resultButton").onclick=()=>{ closeModal(els.result); els.play.hidden=true; els.briefing.hidden=false; };
+function advanceDispatch() {
+  closeModal(els.result);
+  els.play.hidden = true;
+  els.briefing.hidden = false;
+  state.started = false;
+  const scenarios = curriculum.scenarios[state.group];
+  $("scenarioSelect").value = String((state.scenarioIndex + 1) % scenarios.length);
+  updateBriefing();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+$("certificationGroup").onchange = renderScenarioOptions;
+$("scenarioSelect").onchange = updateBriefing;
+$("randomScenario").onclick = randomScenario;
+$("startButton").onclick = start;
+$("resetButton").onclick = resetCall;
+$("soundButton").onclick = toggleSound;
+$("quizContinue").onclick = () => {
+  closeModal(els.quiz);
+  if (state.quizCallback) state.quizCallback();
+  state.quizCallback = null;
+};
+$("notebookButton").onclick = () => {
+  $("notesList").innerHTML = state.notes.length
+    ? state.notes.map(note => `<div class="note-item"><b>${escapeHtml(note[0])}</b><span>${escapeHtml(note[1])}</span></div>`).join("")
+    : "<p>No evidence collected yet.</p>";
+  openModal(els.notes);
+};
+$("hintButton").onclick = () => {
+  const focus = state.scenario.focus;
+  const hints = [state.scenario.complaint, focus.visual, focus.operating, focus.confirm, focus.repair];
+  const completedTasks = currentTasks().filter(task => state.completed.has(task.id)).length;
+  mentor(hints[Math.min(completedTasks, hints.length - 1)], "warning");
+  state.scores.efficiency = Math.max(0, state.scores.efficiency - 2);
+  $("efficiencyScore").textContent = state.scores.efficiency;
+};
+$("resultButton").onclick = advanceDispatch;
 document.querySelectorAll(".dialog-close").forEach(button => button.addEventListener("click", event => {
   const dialog = button.closest("dialog");
   if (dialog && typeof dialog.close !== "function") {
@@ -287,7 +488,16 @@ document.querySelectorAll(".dialog-close").forEach(button => button.addEventList
     closeModal(dialog);
   }
 }));
-document.querySelectorAll(".location-tabs button").forEach(b=>b.onclick=()=>switchScene(b.dataset.scene));
-setInterval(()=>{ if(!state.started||els.play.hidden)return; state.seconds++; const m=String(Math.floor(state.seconds/60)).padStart(2,"0"),s=String(state.seconds%60).padStart(2,"0"); els.timer.textContent=`${m}:${s}`; },1000);
-renderCareer(); renderTasks(); renderActions();
+document.querySelectorAll(".location-tabs button").forEach(button => button.onclick = () => switchScene(button.dataset.scene));
+setInterval(() => {
+  if (!state.started || els.play.hidden) return;
+  state.seconds++;
+  const minutes = String(Math.floor(state.seconds / 60)).padStart(2,"0");
+  const seconds = String(state.seconds % 60).padStart(2,"0");
+  els.timer.textContent = `${minutes}:${seconds}`;
+}, 1000);
+
+window.CoolCall = { state, curriculum, questionBanks, buildActions, selectScenarioQuestions };
+renderCareer();
+renderScenarioOptions();
 renderSoundButton();

@@ -119,3 +119,57 @@ body.dialog-open::before{content:"";position:fixed;inset:0;background:#0b2236b8;
   .notes-dialog form::before{left:18px;right:18px;background-size:28px 38px}
   .notes-dialog form::after{left:21px;right:21px;background-size:28px 16px}
 }
+
+/* Dispatch curriculum and multi-scenario controls. */
+.dispatch-picker{
+  display:grid;
+  grid-template-columns:1fr 1fr auto;
+  gap:9px;
+  align-items:end;
+  margin:4px 0 22px;
+  padding:13px;
+  border:1px solid #cfdbd8;
+  border-radius:12px;
+  background:#edf5f3;
+}
+.dispatch-picker label{display:grid;gap:5px;min-width:0}
+.dispatch-picker label>span{font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.dispatch-picker select{
+  width:100%;
+  min-width:0;
+  height:40px;
+  padding:0 33px 0 10px;
+  border:1px solid #bfcfcb;
+  border-radius:8px;
+  background:#fff;
+  color:var(--navy);
+  font-size:11px;
+  font-weight:800;
+}
+.dispatch-picker button{
+  height:40px;
+  padding:0 12px;
+  border:1px solid var(--blue);
+  border-radius:8px;
+  background:#fff;
+  color:var(--blue);
+  font-size:10px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.dispatch-picker button:hover{background:#e8f7fa}
+.dispatch-picker>small{grid-column:1/-1;color:#60717a;font-size:9px}
+.game-dialog:not(.notes-dialog) form{max-height:calc(100vh - 30px);overflow:auto}
+.job-heading .eyebrow{max-width:130px;line-height:1.35}
+body[data-training-group="type1"] .scene{background:linear-gradient(#9acbd0 0 58%,#adb7ae 58%)}
+body[data-training-group="type3"] .scene{background:linear-gradient(#718b98 0 24%,#b5c3c5 24% 76%,#65767d 76%)}
+body[data-training-group="type3"] .scene-house{background:#c9d2d1;border-color:#233d50}
+body[data-training-group="type3"] .scene-roof{background:#49687b;clip-path:polygon(8% 20%,92% 20%,100% 100%,0 100%)}
+@media(max-width:760px){
+  .dispatch-picker{grid-template-columns:1fr 1fr}
+  .dispatch-picker button{grid-column:1/-1}
+}
+@media(max-width:520px){
+  .dispatch-picker{grid-template-columns:1fr}
+  .dispatch-picker button,.dispatch-picker>small{grid-column:1}
+}
