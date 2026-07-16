@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17334f">
+  <title>Cool Call: EPA 608 Service Simulator</title>
+  <style>
+:root{--navy:#132d46;--navy2:#0c2034;--blue:#1d8bb8;--cyan:#53c8dc;--cream:#f4efe3;--paper:#fffdf7;--orange:#f39a3d;--red:#d95949;--green:#3d9b72;--ink:#182733;--muted:#64727d;--line:#d7ddd9;--shadow:0 16px 40px #0c203428;--radius:16px}*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-rounded,"Segoe UI",sans-serif;color:var(--ink);background:#dce9eb}button,input{font:inherit}button{cursor:pointer}.game-shell{min-height:100vh;background:linear-gradient(#e6f4f5 0 54%,#d8e3df)}.topbar{height:72px;display:flex;align-items:center;gap:24px;padding:0 clamp(18px,4vw,54px);background:var(--navy);color:#fff;box-shadow:0 4px 0 #0a2338;position:relative;z-index:5}.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}.brand-mark{width:42px;height:42px;border:2px solid #fff8;border-radius:50%;display:grid;place-items:center;color:var(--cyan);font-size:27px}.brand strong{display:block;letter-spacing:1.5px;font-size:18px}.brand small{display:block;color:#a9c4d3;font-size:10px;letter-spacing:.4px}.career-strip{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:#bcd0dc}.rank{color:#fff;font-weight:800;letter-spacing:1px}.xp{width:90px;height:7px;background:#071a2b;border-radius:10px;overflow:hidden}.xp span{display:block;width:0;height:100%;background:var(--orange);transition:.3s}.icon-button{border:1px solid #fff4;background:#fff1;color:#fff;border-radius:50%;width:34px;height:34px}.briefing{min-height:calc(100vh - 72px);display:grid;grid-template-columns:minmax(360px,1.1fr) minmax(390px,.9fr);overflow:hidden}.briefing-art{position:relative;background:linear-gradient(#8dd6e1 0 62%,#76af69 62%);min-height:640px;overflow:hidden;border-right:6px solid #fff7}.sun{position:absolute;top:70px;left:15%;width:92px;height:92px;border-radius:50%;background:#ffd96d;box-shadow:0 0 0 12px #ffe89b66}.cloud{position:absolute;width:120px;height:34px;border-radius:30px;background:#fff9}.cloud:before,.cloud:after{content:"";position:absolute;border-radius:50%;background:#fff}.cloud:before{width:50px;height:50px;left:18px;bottom:0}.cloud:after{width:66px;height:66px;right:14px;bottom:0}.cloud-a{top:75px;right:10%}.cloud-b{top:190px;left:6%;transform:scale(.7)}.house{position:absolute;width:68%;height:38%;left:18%;bottom:12%;background:#f5d9a7;border:5px solid #274661;box-shadow:12px 15px 0 #26445e22}.roof{position:absolute;width:114%;height:65%;left:-7%;top:-48%;background:#d85a48;clip-path:polygon(50% 0,100% 100%,0 100%);border-bottom:5px solid #274661}.door{position:absolute;width:19%;height:47%;left:58%;bottom:0;background:#376a7a;border:4px solid #274661}.window{position:absolute;width:23%;height:25%;left:17%;top:32%;background:#87d5df;border:6px solid #fff;box-shadow:0 0 0 4px #274661}.van{position:absolute;width:44%;height:20%;left:5%;bottom:6%;filter:drop-shadow(8px 9px 0 #18344b33)}.van-body,.van-cab{position:absolute;bottom:20%;background:#f6f1df;border:4px solid #17334f}.van-body{left:0;width:68%;height:78%;border-radius:15px 5px 3px 3px;display:grid;place-items:center;color:var(--blue);font-weight:900;font-size:clamp(10px,1.3vw,18px)}.van-cab{right:0;width:36%;height:56%;border-radius:8px 28px 4px 3px}.van i{position:absolute;bottom:0;width:18%;aspect-ratio:1;border-radius:50%;background:#17334f;border:5px solid #65818c}.van i:nth-of-type(1){left:14%}.van i:nth-of-type(2){right:10%}.briefing-copy{padding:clamp(36px,6vw,90px);background:var(--paper);display:flex;flex-direction:column;justify-content:center}.eyebrow{margin:0 0 8px;color:var(--blue);font-weight:900;letter-spacing:1.8px;font-size:11px}.briefing h1{margin:0;font-size:clamp(36px,5vw,66px);line-height:.98;color:var(--navy);max-width:650px}.briefing-copy>p:not(.eyebrow){font-size:17px;line-height:1.6;color:#53626b;max-width:620px}.system-tags{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 25px}.system-tags span{background:#edf4f2;border:1px solid #d3dfdc;padding:7px 11px;border-radius:20px;font-size:12px;font-weight:700}.mode-picker{border:0;padding:0;margin:0 0 25px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.mode-picker legend{font-size:12px;font-weight:800;margin-bottom:10px}.mode-picker label{position:relative}.mode-picker input{position:absolute;opacity:0}.mode-picker label span{height:78px;display:flex;flex-direction:column;justify-content:center;padding:10px;border:2px solid var(--line);border-radius:12px;background:#fff;transition:.15s}.mode-picker input:checked+span{border-color:var(--blue);background:#eaf7fa;box-shadow:0 0 0 3px #1d8bb819}.mode-picker b{font-size:13px}.mode-picker small{font-size:10px;color:var(--muted);margin-top:4px}.primary-button{border:0;border-radius:10px;background:var(--orange);color:#1f2b30;font-weight:900;padding:15px 19px;box-shadow:0 4px 0 #cc7121;display:inline-flex;align-items:center;justify-content:center;gap:20px}.primary-button:hover{transform:translateY(-1px);filter:brightness(1.04)}.play-screen{display:grid;grid-template-columns:255px minmax(480px,1fr) 285px;min-height:calc(100vh - 72px)}.job-panel,.mentor-panel{background:var(--paper);padding:22px 18px}.job-panel{border-right:1px solid var(--line)}.mentor-panel{border-left:1px solid var(--line);display:flex;flex-direction:column;max-height:calc(100vh - 72px)}.job-heading,.drawer-heading{display:flex;justify-content:space-between;align-items:flex-start}.job-heading h2,.drawer-heading h2{margin:0;color:var(--navy);font-size:18px}.timer{font-variant-numeric:tabular-nums;background:#edf1ef;padding:5px 7px;border-radius:6px;font-size:11px;font-weight:800}.customer-card{display:flex;gap:10px;align-items:center;background:#e9f5f5;border-radius:10px;padding:11px;margin:17px 0 22px}.avatar{font-size:29px}.customer-card b,.customer-card small{display:block}.customer-card small{font-size:10px;color:#59666e;margin-top:2px}.job-panel h3{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}.task-list{margin:0;padding:0;list-style:none}.task-list li{position:relative;padding:9px 6px 9px 31px;font-size:12px;color:#67747c;border-bottom:1px solid #edf0ed}.task-list li:before{content:attr(data-step);position:absolute;left:2px;top:8px;width:18px;height:18px;border:1px solid #bdc9c8;border-radius:50%;display:grid;place-items:center;font-size:9px}.task-list li.done{color:var(--green);font-weight:700}.task-list li.done:before{content:"✓";color:#fff;background:var(--green);border-color:var(--green)}.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:22px 0}.score-grid div{background:#f0f2ee;border-radius:7px;text-align:center;padding:7px 3px}.score-grid span,.score-grid strong{display:block}.score-grid span{font-size:8px;text-transform:uppercase;color:var(--muted)}.score-grid strong{font-size:17px;color:var(--navy)}.secondary-button{width:100%;padding:10px;border:1px solid var(--line);background:#fff;border-radius:8px;font-weight:700;font-size:11px}.scene-area{display:flex;flex-direction:column;min-width:0}.location-tabs{height:48px;background:#e9efed;display:flex;align-items:end;padding:0 18px;gap:4px;border-bottom:1px solid #c9d2d0}.location-tabs button{height:39px;border:0;background:transparent;padding:0 16px;color:#69777e;font-size:11px;font-weight:800;border-radius:8px 8px 0 0}.location-tabs button.active{background:#fff;color:var(--blue);box-shadow:0 -2px 7px #18344b0c}.scene{position:relative;min-height:340px;flex:1;overflow:hidden;background:linear-gradient(#78cfdf 0 62%,#72ac68 62%);border-bottom:5px solid var(--navy)}.scene-sky i{position:absolute;width:105px;height:30px;background:#fff8;border-radius:30px;top:30px;left:12%}.scene-sky i:nth-child(2){left:auto;right:12%;top:70px;transform:scale(.7)}.scene-house{position:absolute;left:17%;bottom:0;width:58%;height:55%;background:#f1d6a6;border:4px solid #25445a}.scene-roof{position:absolute;width:116%;height:70%;left:-8%;top:-55%;background:#cf5a4c;clip-path:polygon(50% 0,100% 100%,0 100%)}.scene-window{position:absolute;width:22%;height:34%;left:13%;top:27%;background:#a7e3ea;border:8px solid #fff;box-shadow:0 0 0 3px #27475d}.scene-door{position:absolute;right:14%;bottom:0;width:19%;height:66%;background:#31677b;border:4px solid #27475d}.condenser-unit{position:absolute;right:9%;bottom:5%;width:115px;height:130px;background:#d4d1bf;border:5px solid #27475d;border-radius:7px}.fan{position:absolute;width:73px;height:24px;border:4px solid #27475d;border-radius:50%;top:-11px;left:16px;background:repeating-radial-gradient(#6d7774 0 4px,#c0c3b8 5px 9px)}.grille{position:absolute;inset:25px 8px 8px;background:repeating-linear-gradient(90deg,#7a8580 0 2px,transparent 2px 8px)}.tech-hand{position:absolute;right:2%;bottom:-2px;font-size:70px;filter:drop-shadow(5px 5px 0 #18344b33)}.scene-label{position:absolute;left:20px;bottom:18px;background:#102b43e8;color:#fff;padding:10px 14px;border-left:4px solid var(--orange);border-radius:4px;max-width:260px}.scene-label b,.scene-label span{display:block}.scene-label b{font-size:13px}.scene-label span{color:#bdd2dc;font-size:10px;margin-top:3px}.scene[data-scene="outdoor"] .scene-house{left:1%;width:45%;transform:scale(1.35);transform-origin:bottom left}.scene[data-scene="outdoor"] .condenser-unit{right:27%;width:190px;height:210px}.scene[data-scene="outdoor"] .fan{width:125px;height:37px;left:27px}.scene[data-scene="indoor"]{background:#d9c8a9}.scene[data-scene="indoor"] .scene-house{inset:0;width:100%;height:100%;background:linear-gradient(90deg,#ded3bb 0 64%,#c7b695 64%);border:0}.scene[data-scene="indoor"] .scene-roof,.scene[data-scene="indoor"] .scene-window,.scene[data-scene="indoor"] .scene-door,.scene[data-scene="indoor"] .condenser-unit{display:none}.scene[data-scene="indoor"] .scene-house:after{content:"AIR HANDLER";position:absolute;right:15%;top:13%;width:150px;height:245px;background:#cdd2ca;border:5px solid #2c4659;display:grid;place-items:center;color:#68736f;font-weight:900;writing-mode:vertical-rl;letter-spacing:3px}.scene[data-scene="truck"]{background:#7db8bc}.scene[data-scene="truck"] .scene-house{inset:7% 6%;width:88%;height:88%;background:#e8e2d3;border-radius:10px}.scene[data-scene="truck"] .scene-house:after{content:"GAUGES   METER   SCALE   LEAK DETECTOR   RECOVERY MACHINE   VACUUM PUMP";position:absolute;inset:18%;border:4px dashed #71828a;display:grid;place-items:center;text-align:center;padding:20px;line-height:2;color:#365463;font-weight:900}.scene[data-scene="truck"] .scene-roof,.scene[data-scene="truck"] .scene-window,.scene[data-scene="truck"] .scene-door,.scene[data-scene="truck"] .condenser-unit{display:none}.action-drawer{background:#fff;padding:16px 20px 20px;min-height:220px}.notebook-button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 9px;font-size:10px;font-weight:800}.notebook-button span{background:var(--orange);border-radius:10px;padding:1px 5px}.action-grid{display:grid;grid-template-columns:repeat(3,minmax(110px,1fr));gap:8px;margin-top:12px}.action-card{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;text-align:left;min-height:75px;display:grid;grid-template-columns:32px 1fr;gap:8px;align-items:start}.action-card:hover:not(:disabled){border-color:var(--blue);background:#f0fbfc;transform:translateY(-1px)}.action-card:disabled{opacity:.44;cursor:not-allowed}.action-icon{grid-row:1/3;font-size:24px}.action-card b{font-size:11px;color:var(--navy)}.action-card small{font-size:9px;color:var(--muted);line-height:1.35}.action-card.complete{border-color:#a6d4c1;background:#eef8f3}.mentor-heading{display:flex;gap:10px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line)}.mentor-avatar{width:43px;height:43px;border-radius:50%;background:#e8d9b9;display:grid;place-items:center;font-size:29px}.mentor-heading b,.mentor-heading small{display:block}.mentor-heading b{font-size:12px}.mentor-heading small{font-size:9px;color:var(--muted)}.online-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#53bd82;margin-right:4px}.mentor-feed{flex:1;overflow:auto;padding:14px 2px;display:flex;flex-direction:column;gap:10px}.mentor-message{background:#edf5f5;padding:10px;border-radius:4px 11px 11px 11px;font-size:11px;line-height:1.45;animation:pop .2s ease}.mentor-message.warning{background:#fff1df;border-left:3px solid var(--orange)}.mentor-message.good{background:#e8f6ee;border-left:3px solid var(--green)}.mentor-message small{display:block;color:#859096;font-size:8px;margin-top:4px}.mentor-footer{border-top:1px solid var(--line);padding-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:var(--muted)}.mentor-footer button{border:0;background:var(--navy);color:#fff;border-radius:6px;padding:7px 9px;font-size:9px}.game-dialog{border:0;border-radius:18px;padding:0;box-shadow:0 30px 90px #071a2b77;width:min(560px,calc(100vw - 24px));background:var(--paper)}.game-dialog::backdrop{background:#0b2236b8;backdrop-filter:blur(3px)}.game-dialog form,.result-dialog{padding:28px;position:relative}.dialog-close{position:absolute;right:15px;top:12px;border:0;background:transparent;color:#718087;font-size:25px}.game-dialog h2{margin:0 0 19px;color:var(--navy);font-size:23px}.quiz-choices{display:grid;gap:8px}.quiz-choice{border:2px solid var(--line);background:#fff;border-radius:9px;padding:11px;text-align:left;font-size:12px}.quiz-choice:hover{border-color:var(--blue)}.quiz-choice.correct{border-color:var(--green);background:#e9f7ef}.quiz-choice.wrong{border-color:var(--red);background:#fcecea}.quiz-feedback{padding:12px;background:#edf4f2;border-radius:9px;margin:13px 0;font-size:11px;line-height:1.5}.notes-dialog #notesList{display:grid;gap:8px}.note-item{border-left:4px solid var(--cyan);background:#edf4f2;padding:10px}.note-item b,.note-item span{display:block}.note-item b{font-size:12px}.note-item span{font-size:10px;color:var(--muted);margin-top:3px}.result-dialog{text-align:center}.result-badge{margin:-55px auto 10px;width:70px;height:70px;background:var(--orange);border:5px solid #fff;border-radius:50%;display:grid;place-items:center;font-size:35px;color:#fff}.result-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:20px 0}.result-scores div{background:#eef3f0;border-radius:9px;padding:12px}.result-scores b,.result-scores span{display:block}.result-scores span{font-size:9px;color:var(--muted);text-transform:uppercase}@keyframes pop{from{opacity:0;transform:translateY(5px)}}@media(max-width:1050px){.play-screen{grid-template-columns:220px 1fr}.mentor-panel{position:fixed;right:12px;bottom:12px;width:280px;height:420px;z-index:8;box-shadow:var(--shadow);border-radius:14px}.action-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.topbar{height:62px;padding:0 13px}.career-strip .rank,.career-strip .xp{display:none}.brand small{display:none}.briefing{display:block}.briefing-art{min-height:300px;border-right:0;border-bottom:5px solid #fff7}.briefing-copy{padding:28px 20px}.briefing h1{font-size:39px}.mode-picker{grid-template-columns:1fr}.mode-picker label span{height:56px}.play-screen{display:block}.job-panel{display:none}.location-tabs{overflow-x:auto}.location-tabs button{white-space:nowrap}.scene{min-height:310px}.action-grid{grid-template-columns:1fr 1fr}.mentor-panel{left:12px;width:auto;height:330px;transform:translateY(calc(100% - 54px));transition:.2s}.mentor-panel:focus-within,.mentor-panel:hover{transform:none}.scene[data-scene="outdoor"] .condenser-unit{right:16%}.career-strip{gap:5px}.action-drawer{padding:13px}.game-dialog form,.result-dialog{padding:23px}}@media(max-width:420px){.action-grid{grid-template-columns:1fr}.scene{min-height:270px}.career-strip{display:none}}
+
+/* Refreshed service-van artwork. Kept dependency-free for local and embedded previews. */
+body .briefing-art .van{width:50%;height:23%;left:3%;bottom:5%;filter:drop-shadow(9px 10px 0 #18344b33)}
+body .briefing-art .van-body,body .briefing-art .van-cab{bottom:20%;border:4px solid #17334f}
+body .briefing-art .van-body{left:0;width:70%;height:83%;border-radius:16px 5px 3px 3px;background:linear-gradient(180deg,#fffdf2 0 66%,#dcebed 66%);overflow:hidden;display:block}
+body .briefing-art .van-cab{right:0;width:38%;height:64%;border-radius:7px 31px 4px 3px;background:#f6f1df}
+body .briefing-art .van-cab:before{content:"";position:absolute;width:52%;height:42%;right:12%;top:9%;background:#78c7d3;border:3px solid #17334f;clip-path:polygon(12% 0,82% 0,100% 100%,0 100%)}
+body .briefing-art .van-cab:after{content:"";position:absolute;width:11%;height:10%;right:-5px;bottom:18%;background:#ffd45c;border:3px solid #17334f;border-radius:2px}
+.van-logo{position:absolute;left:9%;top:19%;display:flex;align-items:center;gap:7px;color:var(--blue);font-size:clamp(10px,1.35vw,18px);letter-spacing:.6px}
+.van-logo:first-letter{color:var(--cyan);font-size:1.35em}
+.van-stripe{position:absolute;left:0;right:0;bottom:17%;height:10%;background:linear-gradient(90deg,var(--blue),var(--cyan))}
+.van-handle{position:absolute;right:9%;top:26%;width:9%;height:4%;background:#17334f;border-radius:4px}
+.van-bumper{position:absolute;right:-4%;bottom:16%;width:15%;height:7%;background:#617783;border:3px solid #17334f;border-radius:2px}
+body .briefing-art .van i{bottom:0;width:18%;background:#17334f;border:5px solid #65818c;box-shadow:inset 0 0 0 5px #263f52}
+.truck-interior{display:none}
+body .scene.scene[data-scene="truck"]{background:linear-gradient(180deg,#9fb1b5 0 72%,#4f6269 72%)}
+body .scene.scene[data-scene="truck"] .scene-sky,body .scene.scene[data-scene="truck"] .scene-house,body .scene.scene[data-scene="truck"] .condenser-unit,body .scene.scene[data-scene="truck"] .tech-hand{display:none}
+body .scene.scene[data-scene="truck"] .truck-interior{display:block;position:absolute;inset:0;background:linear-gradient(115deg,#c7d0cf 0 18%,#e6e9e4 18% 80%,#b8c4c3 80%);overflow:hidden}
+body .scene.scene[data-scene="truck"] .truck-interior:before{content:"COOL CALL · MOBILE SERVICE BAY";position:absolute;left:0;right:0;top:0;height:11%;display:grid;place-items:center;background:repeating-linear-gradient(90deg,#27475d 0 4px,#31566e 4px 13%);border-bottom:5px solid #17334f;color:#d8f6f8;font-size:clamp(8px,1vw,12px);font-weight:900;letter-spacing:2px}
+body .scene.scene[data-scene="truck"] .truck-interior:after{content:"";position:absolute;left:0;right:0;bottom:0;height:29%;background:repeating-linear-gradient(90deg,#46575d 0 3px,#53666c 3px 18px);clip-path:polygon(0 35%,100% 0,100% 100%,0 100%);z-index:0}
+.truck-door{position:absolute;inset:5% 2% 2%;border:6px solid #294657;border-top:0;border-radius:0 0 12px 12px;box-shadow:inset 0 0 0 3px #ffffff66;z-index:1;pointer-events:none}
+.truck-door:before,.truck-door:after{content:"";position:absolute;top:11%;bottom:0;width:5px;background:#819397}.truck-door:before{left:39%}.truck-door:after{right:22%}
+.truck-door i{position:absolute;right:24%;top:11%;width:10px;height:82px;border:4px solid #e7ae3e;border-top:0;border-radius:0 0 50% 50%}.truck-door i:nth-child(2){right:28%;height:66px;border-color:#3b83a4}
+.truck-shelf{position:absolute;left:5%;top:15%;width:33%;height:62%;padding:25px 10px 10px;border:5px solid #294657;background:#82959a;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);gap:7px;z-index:2;box-shadow:7px 8px 0 #1c354433}
+.truck-shelf>b,.truck-bench>b{position:absolute;left:0;right:0;top:0;height:22px;display:grid;place-items:center;background:#294657;color:#eefbfb;font-size:8px;letter-spacing:1.2px}
+.truck-shelf span{display:grid;place-items:end center;padding:5px;background:linear-gradient(#e68f37 0 28%,#f1b25e 28%);border:3px solid #294657;color:#2b414d;font-size:7px;font-weight:900}
+.truck-bench{position:absolute;left:42%;top:15%;width:31%;height:45%;padding:34px 8px 8px;border:5px solid #294657;background:radial-gradient(circle,#809196 1.5px,transparent 2px) 0 0/12px 12px,#c9d2cf;display:grid;grid-template-columns:1.35fr .8fr .8fr;gap:8px;align-items:center;z-index:2;box-shadow:7px 8px 0 #1c354433}
+.truck-bench>span{min-width:0;height:76%;border:3px solid #294657;background:#f3f1e7;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#294657;font-size:clamp(9px,1.1vw,15px);font-weight:900;box-shadow:0 4px 0 #29465733}
+.truck-bench small,.truck-machines small{display:block;font-size:6px;letter-spacing:.5px;margin-top:4px}
+.truck-manifold{position:relative;flex-direction:row!important;gap:4px;padding-top:15px}.truck-manifold i{width:24px;height:24px;border:4px solid #294657;border-radius:50%;background:radial-gradient(circle,#fff 0 26%,#58b8c8 28% 35%,#fff 37%)}.truck-manifold i:nth-child(2){background:radial-gradient(circle,#fff 0 26%,#dd6555 28% 35%,#fff 37%)}.truck-manifold small{position:absolute;bottom:3px}
+.truck-meter{background:#f0c34f!important}.truck-detector{background:#e8e5da!important}
+.truck-machines{position:absolute;left:42%;right:5%;bottom:5%;height:29%;display:flex;align-items:end;justify-content:flex-end;gap:8px;z-index:2}
+.truck-machines>span{display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid #294657;color:#294657;font-weight:900;box-shadow:4px 5px 0 #1c354433}
+.truck-cylinder{align-self:stretch;width:18%;background:#aad29d;border-radius:18px 18px 5px 5px!important;font-size:14px}.truck-cylinder:before{content:"";width:45%;height:9%;margin-top:-20%;margin-bottom:8%;background:#294657;border-radius:3px}
+.truck-recovery,.truck-vacuum{width:28%;height:72%;border-radius:7px;background:#efb246}.truck-vacuum{background:#76b8c5}
+@media(max-width:760px){body .briefing-art .van{width:53%;height:25%}.truck-shelf{left:3%;width:35%}.truck-bench{left:41%;width:34%}.truck-machines{left:41%;right:3%}.truck-shelf span{font-size:6px;padding:2px}}
+
+/* Keep inactive screens out of layout even when component rules set display. */
+[hidden]{display:none!important}
+.briefing{grid-template-columns:minmax(0,1.1fr) minmax(390px,.9fr)}
+@media(max-width:760px){.briefing{display:flex;flex-direction:column}.briefing-copy{order:-1}}
+
+/* Embedded-preview dialog fallback and responsive mentor layout. */
+.game-dialog.dialog-fallback[open]{position:fixed;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:100;max-height:calc(100vh - 24px);overflow:auto}
+body.dialog-open::before{content:"";position:fixed;inset:0;background:#0b2236b8;z-index:99}
+@media(max-width:1050px){
+  .play-screen{grid-template-columns:220px minmax(0,1fr)}
+  .mentor-panel{grid-column:1/-1;position:static;right:auto;bottom:auto;width:auto;height:auto;max-height:none;z-index:auto;border-left:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none}
+  .mentor-feed{max-height:240px}
+}
+@media(max-width:760px){
+  .mentor-panel{position:static;left:auto;width:auto;height:auto;max-height:none;transform:none;transition:none;border-radius:0}
+  .mentor-panel:focus-within,.mentor-panel:hover{transform:none}
+}
+  </style>
+</head>
+<body>
+  <div class="game-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Cool Call home">
+        <span class="brand-mark" aria-hidden="true">❄</span>
+        <span><strong>COOL CALL</strong><small>EPA 608 Service Simulator</small></span>
+      </a>
+      <div class="career-strip" aria-label="Career progress">
+        <span class="rank" id="rankLabel">APPRENTICE</span>
+        <span class="xp"><span id="xpBar"></span></span>
+        <span id="xpLabel">0 / 100 XP</span>
+      </div>
+      <button class="icon-button" id="soundButton" type="button" aria-label="Toggle sound">♪</button>
+    </header>
+
+    <main>
+      <section class="briefing" id="briefingPanel">
+        <div class="briefing-art" aria-hidden="true">
+          <div class="sun"></div><div class="cloud cloud-a"></div><div class="cloud cloud-b"></div>
+          <div class="house"><div class="roof"></div><div class="door"></div><div class="window"></div></div>
+          <div class="van">
+            <div class="van-cab"></div>
+            <div class="van-body"><span class="van-logo">❄ <b>COOL CALL</b></span><span class="van-stripe"></span><span class="van-handle"></span></div>
+            <span class="van-bumper"></span><i></i><i></i>
+          </div>
+        </div>
+        <div class="briefing-copy">
+          <p class="eyebrow">SERVICE CALL 001 · RESIDENTIAL</p>
+          <h1>The House That Won't Cool</h1>
+          <p>Mrs. Alvarez says the system runs all afternoon, but the house stays at 79°F. Diagnose a four-ton R-410A split system without wasting refrigerant—or her time.</p>
+          <div class="system-tags">
+            <span>4 ton split</span><span>R-410A</span><span>TXV</span><span>92°F outdoor</span>
+          </div>
+          <fieldset class="mode-picker">
+            <legend>Choose mentor support</legend>
+            <label><input type="radio" name="mentor" value="guide" checked><span><b>Guided</b><small>Teach me before I act</small></span></label>
+            <label><input type="radio" name="mentor" value="coach"><span><b>Coach</b><small>Feedback after I act</small></span></label>
+            <label><input type="radio" name="mentor" value="expert"><span><b>Expert</b><small>No hints. Full score.</small></span></label>
+          </fieldset>
+          <button class="primary-button" id="startButton" type="button">Start service call <span>→</span></button>
+        </div>
+      </section>
+
+      <section class="play-screen" id="playScreen" hidden>
+        <aside class="job-panel">
+          <div class="job-heading"><div><p class="eyebrow">ACTIVE CALL</p><h2>Alvarez Residence</h2></div><span class="timer" id="timer">00:00</span></div>
+          <div class="customer-card"><span class="avatar" aria-hidden="true">👩🏽</span><div><b>Mrs. Alvarez</b><small>“It runs, but never catches up.”</small></div></div>
+          <h3>Work order</h3>
+          <ol class="task-list" id="taskList"></ol>
+          <div class="score-grid">
+            <div><span>Safety</span><strong id="safetyScore">100</strong></div>
+            <div><span>Accuracy</span><strong id="accuracyScore">100</strong></div>
+            <div><span>Efficiency</span><strong id="efficiencyScore">100</strong></div>
+          </div>
+          <button class="secondary-button" id="resetButton" type="button">Restart call</button>
+        </aside>
+
+        <section class="scene-area">
+          <nav class="location-tabs" aria-label="Service locations">
+            <button data-scene="customer" class="active" type="button">Front door</button>
+            <button data-scene="outdoor" type="button">Condenser</button>
+            <button data-scene="indoor" type="button">Air handler</button>
+            <button data-scene="truck" type="button">Service van</button>
+          </nav>
+
+          <div class="scene" id="scene" data-scene="customer">
+            <div class="scene-sky"><i></i><i></i></div>
+            <div class="scene-house">
+              <div class="scene-roof"></div><div class="scene-window"></div><div class="scene-door"></div>
+            </div>
+            <div class="condenser-unit"><span class="fan"></span><span class="grille"></span></div>
+            <div class="truck-interior" aria-hidden="true">
+              <div class="truck-shelf">
+                <b>PARTS &amp; SUPPLIES</b>
+                <span>CORES</span><span>CAPS</span><span>FUSES</span><span>FITTINGS</span><span>WIRE</span><span>TAPE</span>
+              </div>
+              <div class="truck-bench">
+                <b>TEST EQUIPMENT</b>
+                <span class="truck-manifold"><i></i><i></i><small>MANIFOLD</small></span>
+                <span class="truck-meter">600<small>METER</small></span>
+                <span class="truck-detector">⌁<small>LEAK</small></span>
+              </div>
+              <div class="truck-machines">
+                <span class="truck-cylinder">N₂</span>
+                <span class="truck-recovery">R<small>RECOVERY</small></span>
+                <span class="truck-vacuum">V<small>VACUUM</small></span>
+              </div>
+              <div class="truck-door"><i></i><i></i></div>
+            </div>
+            <div class="tech-hand" aria-hidden="true">🧰</div>
+            <div class="scene-label" id="sceneLabel"><b>Front door</b><span>Begin with the customer complaint.</span></div>
+            <div class="hotspots" id="hotspots"></div>
+          </div>
+
+          <div class="action-drawer">
+            <div class="drawer-heading"><div><p class="eyebrow">AVAILABLE ACTIONS</p><h2 id="actionHeading">Front door</h2></div><button class="notebook-button" id="notebookButton" type="button">▤ Field notes <span id="noteCount">0</span></button></div>
+            <div class="action-grid" id="actionGrid"></div>
+          </div>
+        </section>
+
+        <aside class="mentor-panel" id="mentorPanel">
+          <div class="mentor-heading"><span class="mentor-avatar">🧔🏾‍♂️</span><div><span class="online-dot"></span><b>Ray · Senior Tech</b><small id="mentorModeLabel">Guided mentor</small></div></div>
+          <div class="mentor-feed" id="mentorFeed" aria-live="polite"></div>
+          <div class="mentor-footer"><span>Mentor channel</span><button id="hintButton" type="button">Ask for a hint</button></div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="quizDialog" class="game-dialog">
+    <form method="dialog">
+      <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+      <p class="eyebrow">EPA 608 KNOWLEDGE CHECK</p>
+      <h2 id="quizQuestion"></h2>
+      <div id="quizChoices" class="quiz-choices"></div>
+      <div id="quizFeedback" class="quiz-feedback" hidden></div>
+      <button class="primary-button" id="quizContinue" type="button" hidden>Continue</button>
+    </form>
+  </dialog>
+
+  <dialog id="notesDialog" class="game-dialog notes-dialog">
+    <form method="dialog"><button class="dialog-close" value="cancel" aria-label="Close">×</button><p class="eyebrow">FIELD NOTEBOOK</p><h2>Evidence collected</h2><div id="notesList"></div></form>
+  </dialog>
+
+  <dialog id="resultDialog" class="game-dialog result-dialog">
+    <div class="result-badge">★</div><p class="eyebrow">SERVICE CALL COMPLETE</p><h2 id="resultTitle">Solid diagnosis!</h2><p id="resultText"></p><div id="resultScores" class="result-scores"></div><button class="primary-button" id="resultButton" type="button">Return to dispatch</button>
+  </dialog>
+
+  <script>
+"use strict";
+
+const TASKS = [
+  { id: "complaint", label: "Confirm the complaint" },
+  { id: "airflow", label: "Rule out airflow problems" },
+  { id: "electrical", label: "Verify electrical operation" },
+  { id: "refrigerant", label: "Evaluate the refrigeration circuit" },
+  { id: "leak", label: "Locate the refrigerant leak" },
+  { id: "diagnose", label: "Submit a diagnosis" },
+  { id: "repair", label: "Complete a compliant repair" }
+];
+
+const ACTIONS = {
+  customer: [
+    { id: "interview", icon: "💬", title: "Interview customer", detail: "Ask when and how the problem began", task: "complaint", note: ["Customer history", "Runs continuously; cooling declined gradually over two weeks. Filter was changed last month."], message: "Good start. A gradual loss of capacity is evidence—not a diagnosis. Keep the airflow, electrical, and refrigerant branches open." },
+    { id: "thermostat", icon: "🌡️", title: "Read thermostat", detail: "Check setpoint, room temperature and call", note: ["Thermostat", "79°F room, 72°F setpoint; Y1 and G calls active."], message: "The controls are calling for cooling. Now prove what the equipment is doing." }
+  ],
+  indoor: [
+    { id: "filter", icon: "▦", title: "Inspect filter", detail: "Check condition and installation", note: ["Filter", "Clean MERV 8 filter, correctly oriented."], message: "A clean filter removes the most common restriction, but it does not prove airflow." },
+    { id: "temps", icon: "🌡️", title: "Measure air temperatures", detail: "Take return and supply dry-bulb", requires: "filter", note: ["Air temperatures", "Return 79°F DB; supply 67°F DB; temperature split 12°F."], message: "A 12°F split is low for these conditions. That confirms weak sensible capacity, not its cause." },
+    { id: "airflow", icon: "💨", title: "Measure total airflow", detail: "Use static pressure and blower data", requires: "filter", task: "airflow", note: ["Airflow", "0.54 in. w.c. total external static; approximately 1,560 CFM."], message: "About 390 CFM per ton is reasonable. Airflow is unlikely to be the root fault." },
+    { id: "coil", icon: "🧊", title: "Inspect evaporator", detail: "Look for dirt, ice and oil", requires: "filter", note: ["Evaporator", "Coil is clean. No ice. Distributor feeds appear evenly cool."], message: "No obvious indoor coil restriction. Keep following the evidence." }
+  ],
+  outdoor: [
+    { id: "visual", icon: "👁️", title: "Visual inspection", detail: "Check coil, wiring, oil and service ports", note: ["Outdoor inspection", "Condenser coil is clean. Slight oily dust around suction service-port cap."], message: "That oily residue is worth noting. Oil can travel with refrigerant at a leak, but confirm it with an approved method." },
+    { id: "voltage", icon: "⚡", title: "Check voltage & amps", detail: "Use meter and clamp", task: "electrical", note: ["Electrical readings", "243 VAC. Compressor 15.2 A; condenser fan 1.1 A. Both operating."], message: "Electrical operation is normal for the present load. De-energize before resistance or capacitance tests." },
+    { id: "capacitor", icon: "🔋", title: "Test capacitor", detail: "Isolate power, discharge, and measure", requires: "voltage", task: "electrical", note: ["Dual capacitor", "Rated 45/5 µF; measured 44.2/4.9 µF. Within tolerance."], message: "Capacitor passes. Restore power only after covers and leads are secure." },
+    { id: "gauges", icon: "🎛️", title: "Connect digital manifold", detail: "Use low-loss fittings and purge hoses", requires: "visual", note: ["Refrigerant pressures", "R-410A: 102 psig suction / 300 psig liquid. Saturation temperatures: 32°F / 94°F."], message: "Low suction and low head can fit undercharge, but pressures alone are not enough. Add line temperatures." , quiz: 0},
+    { id: "lines", icon: "📏", title: "Clamp line temperatures", detail: "Measure suction and liquid lines", requires: "gauges", task: "refrigerant", note: ["Line temperatures", "Suction line 58°F; liquid line 89°F. Superheat 26°F; subcooling 5°F."], message: "High superheat plus low subcooling, with normal airflow, strongly supports an undercharged TXV system." },
+    { id: "detector", icon: "📡", title: "Electronic leak search", detail: "Sweep likely leak points slowly", requires: "lines", task: "leak", note: ["Leak test", "Repeated detector response at suction service-port valve core; bubble test confirms leak."], message: "Leak confirmed at the valve core. Repair the leak before adding refrigerant." , quiz: 1},
+    { id: "diagnose", icon: "📝", title: "Submit diagnosis", detail: "Choose the fault supported by evidence", requires: "detector", task: "diagnose", diagnosis: true },
+    { id: "repair", icon: "🔧", title: "Repair & commission", detail: "Choose a compliant service procedure", requires: "diagnose", task: "repair", repair: true }
+  ],
+  truck: [
+    { id: "inventory", icon: "🧰", title: "Check truck stock", detail: "Review available service tools", note: ["Truck inventory", "Digital manifold, clamps, meter, leak detector, bubbles, core tool, recovery setup, nitrogen, vacuum pump, micron gauge, scale."], message: "Use the least invasive tool that can produce reliable evidence." },
+    { id: "ppe", icon: "🥽", title: "Put on PPE", detail: "Gloves and safety glasses", note: ["Safety", "Safety glasses and refrigerant-rated gloves equipped."], message: "Good. Liquid R-410A can cause severe frostbite, and pressurized work needs eye protection." }
+  ]
+};
+
+const QUIZZES = [
+  { question: "Equipment has to be certified to EPA standards in order to recover which refrigerants?", choices: ["CFCs only", "HCFCs only", "HFCs only", "CFCs, HCFCs, and HFCs"], answer: 3, explanation: "Recovery equipment used for ozone-depleting refrigerants and non-exempt substitutes must meet EPA requirements. This item is adapted from your Core question bank." },
+  { question: "Before opening equipment in a way that would release a non-exempt refrigerant, what does the venting prohibition require?", choices: ["Dilute it with nitrogen", "Recover the affected refrigerant", "Release only vapor", "No action for residential systems"], answer: 1, explanation: "Affected refrigerant must be recovered using compliant practices. De minimis releases during a good-faith recovery attempt are treated differently from intentional venting. Adapted from your Core question bank." }
+];
+
+function loadXp() {
+  try {
+    const savedXp = Number(localStorage.getItem("coolcall-xp"));
+    return Number.isFinite(savedXp) && savedXp >= 0 ? savedXp : 0;
+  } catch {
+    // Some local and embedded previews block storage. Progress can still live in memory.
+    return 0;
+  }
+}
+
+function saveXp(xp) {
+  try {
+    localStorage.setItem("coolcall-xp", String(xp));
+  } catch {
+    // Do not interrupt a completed call when persistent storage is unavailable.
+  }
+}
+
+const state = { mode: "guide", scene: "customer", completed: new Set(), notes: [], scores: { safety: 100, accuracy: 100, efficiency: 100 }, seconds: 0, started: false, xp: loadXp(), quizCallback: null };
+
+const $ = (id) => document.getElementById(id);
+const els = { briefing: $("briefingPanel"), play: $("playScreen"), taskList: $("taskList"), actionGrid: $("actionGrid"), actionHeading: $("actionHeading"), scene: $("scene"), sceneLabel: $("sceneLabel"), mentorFeed: $("mentorFeed"), timer: $("timer"), quiz: $("quizDialog"), notes: $("notesDialog"), result: $("resultDialog") };
+
+function openModal(dialog) {
+  if (!dialog || dialog.open) return;
+  try {
+    if (typeof dialog.showModal === "function") {
+      dialog.showModal();
+      return;
+    }
+  } catch {
+    // Embedded previews can expose <dialog> without allowing showModal().
+  }
+  dialog.setAttribute("open", "");
+  dialog.classList.add("dialog-fallback");
+  document.body.classList.add("dialog-open");
+}
+
+function closeModal(dialog) {
+  if (!dialog) return;
+  if (typeof dialog.close === "function") {
+    try { dialog.close(); } catch { dialog.removeAttribute("open"); }
+  } else {
+    dialog.removeAttribute("open");
+  }
+  dialog.classList.remove("dialog-fallback");
+  if (!document.querySelector(".dialog-fallback[open]")) document.body.classList.remove("dialog-open");
+}
+
+function renderCareer() {
+  const ranks = [[0,"APPRENTICE"],[100,"JUNIOR TECH"],[250,"EPA CERTIFIED"],[500,"SENIOR TECH"]];
+  const rank = [...ranks].reverse().find(([n]) => state.xp >= n);
+  const next = ranks.find(([n]) => n > state.xp) || [750,"MASTER TECH"];
+  $("rankLabel").textContent = rank[1];
+  $("xpLabel").textContent = `${state.xp} / ${next[0]} XP`;
+  const previous = rank[0];
+  $("xpBar").style.width = `${Math.min(100, ((state.xp - previous) / (next[0] - previous)) * 100)}%`;
+}
+
+function renderTasks() {
+  els.taskList.innerHTML = TASKS.map((t,i) => `<li data-step="${i+1}" class="${state.completed.has(t.id) ? "done" : ""}">${t.label}</li>`).join("");
+}
+
+function renderActions() {
+  const actions = ACTIONS[state.scene];
+  els.actionHeading.textContent = document.querySelector(`[data-scene="${state.scene}"]`).textContent;
+  els.actionGrid.innerHTML = actions.map(a => {
+    const complete = state.completed.has(a.id);
+    const locked = a.requires && !state.completed.has(a.requires);
+    return `<button class="action-card ${complete ? "complete" : ""}" data-action="${a.id}" ${locked ? "disabled" : ""}><span class="action-icon">${a.icon}</span><b>${complete ? "✓ " : ""}${a.title}</b><small>${locked ? "Complete the previous test first" : a.detail}</small></button>`;
+  }).join("");
+  els.actionGrid.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => doAction(actions.find(a => a.id === btn.dataset.action))));
+}
+
+function switchScene(scene) {
+  state.scene = scene;
+  els.scene.dataset.scene = scene;
+  document.querySelectorAll(".location-tabs button").forEach(b => b.classList.toggle("active", b.dataset.scene === scene));
+  const labels = { customer:["Front door","Begin with the customer complaint."], outdoor:["Outdoor condenser","Inspect, measure, and follow the refrigeration evidence."], indoor:["Indoor air handler","Airflow must be proven before condemning the charge."], truck:["Service van","Select safe, appropriate tools for the job."] };
+  els.sceneLabel.innerHTML = `<b>${labels[scene][0]}</b><span>${labels[scene][1]}</span>`;
+  renderActions();
+}
+
+function mentor(text, kind="") {
+  if (state.mode === "expert" && kind !== "system") return;
+  const div = document.createElement("div");
+  div.className = `mentor-message ${kind}`;
+  div.innerHTML = `${text}<small>RAY · JUST NOW</small>`;
+  els.mentorFeed.append(div);
+  els.mentorFeed.scrollTop = els.mentorFeed.scrollHeight;
+}
+
+function addNote(note) {
+  if (!note || state.notes.some(n => n[0] === note[0])) return;
+  state.notes.push(note);
+  $("noteCount").textContent = state.notes.length;
+}
+
+function complete(id) { state.completed.add(id); renderTasks(); renderActions(); }
+function penalize(type, amount, why) { state.scores[type] = Math.max(0, state.scores[type] - amount); $(`${type}Score`).textContent = state.scores[type]; mentor(why, "warning"); }
+
+function doAction(action) {
+  if (state.completed.has(action.id) && !action.diagnosis && !action.repair) { mentor("You already have that evidence in your field notes."); return; }
+  if (state.mode === "guide") {
+    const pre = { gauges:"Before connecting, verify the refrigerant and use low-loss fittings. Purge air from hoses without deliberately releasing the system charge.", detector:"Search only after operating data points to a charge issue. Move the probe slowly and confirm any response.", capacitor:"Kill power, verify zero volts, and discharge the capacitor safely before measuring it." }[action.id];
+    if (pre) mentor(pre, "warning");
+  }
+  if (action.diagnosis) return showDiagnosis();
+  if (action.repair) return showRepair();
+  complete(action.id);
+  if (action.task) complete(action.task);
+  addNote(action.note);
+  if (state.mode !== "expert") mentor(action.message, action.task ? "good" : "");
+  if (Number.isInteger(action.quiz) && state.mode !== "expert") showQuiz(action.quiz);
+  if (action.id === "gauges" && !state.completed.has("ppe")) penalize("safety", 8, "You connected to a high-pressure system without first documenting PPE. Gloves and eye protection belong on before opening the service kit.");
+}
+
+function showDiagnosis() {
+  const q = { question:"Which diagnosis best fits all collected evidence?", choices:["Restricted return airflow","Weak run capacitor","Undercharge from a leaking suction service-port core","Overcharged system with a dirty condenser"], answer:2, explanation:"Normal airflow and electrical operation rule out the first two. Low suction, low head, high superheat, low subcooling, oily residue, and a confirmed detector/bubble response identify an undercharge caused by the leaking valve core." };
+  openChoiceDialog(q, correct => { if (correct) { complete("diagnose"); mentor("Diagnosis supported. A technician repairs the verified leak before restoring charge.","good"); } else penalize("accuracy",15,"That choice conflicts with at least two measurements. Review the notebook and use all the evidence, not one pressure."); });
+}
+
+function showRepair() {
+  const q = { question:"Choose the best repair and commissioning plan.", choices:["Add R-410A until suction pressure looks normal; leave the leak for later","Vent the remaining charge, replace the core, and recharge","Use a valve-core removal tool to replace the leaking core with minimal release; verify leak-free operation, weigh in the required R-410A, and confirm final performance","Add leak sealant and tighten the cap"], answer:2, explanation:"A core tool allows the failed core to be replaced while minimizing release. The leak is then verified, charge is restored accurately, caps are installed, and operating performance is confirmed. Intentional venting of R-410A is prohibited." };
+  openChoiceDialog(q, correct => { if (correct) finishCall(); else { penalize("safety",20,"That procedure either vents refrigerant or fails to repair the confirmed leak. R-410A is a non-exempt substitute under the venting prohibition."); penalize("accuracy",10,"Charging by pressure alone is not a complete commissioning method."); } });
+}
+
+function openChoiceDialog(q, callback) {
+  $("quizQuestion").textContent = q.question;
+  $("quizFeedback").hidden = true; $("quizContinue").hidden = true;
+  $("quizChoices").innerHTML = q.choices.map((c,i) => `<button type="button" class="quiz-choice" data-i="${i}">${String.fromCharCode(65+i)}. ${c}</button>`).join("");
+  state.quizCallback = callback;
+  $("quizChoices").querySelectorAll("button").forEach(btn => btn.onclick = () => {
+    const chosen = Number(btn.dataset.i), correct = chosen === q.answer;
+    $("quizChoices").querySelectorAll("button").forEach((b,i) => { b.disabled=true; if(i===q.answer)b.classList.add("correct"); if(i===chosen&&!correct)b.classList.add("wrong"); });
+    $("quizFeedback").textContent = `${correct ? "Correct. " : "Not quite. "}${q.explanation}`; $("quizFeedback").hidden=false; $("quizContinue").hidden=false;
+    state.quizCallback = () => callback(correct);
+  });
+  openModal(els.quiz);
+}
+
+function showQuiz(index) {
+  openChoiceDialog(QUIZZES[index], correct => {
+    if (correct) { state.xp += 5; renderCareer(); mentor("EPA knowledge check passed: +5 XP.","good"); }
+    else penalize("accuracy",5,"Review that EPA point. The field procedure and the regulation need to agree.");
+  });
+}
+
+function finishCall() {
+  complete("repair");
+  const average = Math.round((state.scores.safety + state.scores.accuracy + state.scores.efficiency) / 3);
+  const earned = Math.max(25, Math.round(average * (state.mode === "expert" ? .8 : state.mode === "coach" ? .65 : .5)));
+  state.xp += earned; saveXp(state.xp); renderCareer();
+  $("resultTitle").textContent = average >= 90 ? "Clean work, technician!" : average >= 75 ? "Call completed" : "Repair complete—review needed";
+  $("resultText").textContent = `You traced the capacity loss to a leaking suction service-port core, repaired it without intentional venting, restored the charge, and verified operation. You earned ${earned} XP.`;
+  $("resultScores").innerHTML = Object.entries(state.scores).map(([k,v]) => `<div><b>${v}</b><span>${k}</span></div>`).join("");
+  setTimeout(() => openModal(els.result), 250);
+}
+
+function resetCall() {
+  state.completed.clear(); state.notes=[]; state.seconds=0; state.scores={safety:100,accuracy:100,efficiency:100};
+  ["safety","accuracy","efficiency"].forEach(k => $(`${k}Score`).textContent=100);
+  $("noteCount").textContent=0; els.mentorFeed.innerHTML=""; renderTasks(); switchScene("customer");
+  if (state.mode !== "expert") mentor("New call. Start with the complaint, establish safe conditions, then diagnose from measured evidence.","system");
+  if (state.mode === "guide") mentor("EPA briefing: intentionally venting R-410A can bring serious civil enforcement and penalties. “Natural” does not automatically mean exempt—CO₂, ammonia, water, nitrogen, and certain hydrocarbons are exempt only in the uses specified by EPA rules. Always identify the refrigerant and end use.","warning");
+}
+
+function start() {
+  state.mode = document.querySelector('input[name="mentor"]:checked').value;
+  state.started = true; els.briefing.hidden=true; els.play.hidden=false;
+  requestAnimationFrame(() => els.play.scrollIntoView({ behavior: "smooth", block: "start" }));
+  $("mentorModeLabel").textContent = ({guide:"Guided mentor",coach:"After-action coach",expert:"Expert mode"})[state.mode];
+  $("mentorPanel").hidden = state.mode === "expert";
+  resetCall();
+}
+
+$("startButton").onclick=start;
+$("resetButton").onclick=resetCall;
+$("quizContinue").onclick=()=>{ closeModal(els.quiz); if(state.quizCallback) state.quizCallback(); state.quizCallback=null; };
+$("notebookButton").onclick=()=>{ $("notesList").innerHTML=state.notes.length ? state.notes.map(n=>`<div class="note-item"><b>${n[0]}</b><span>${n[1]}</span></div>`).join("") : "<p>No evidence collected yet.</p>"; openModal(els.notes); };
+$("hintButton").onclick=()=>{ const hints=["Start with the customer's history and thermostat call.","Verify airflow before interpreting refrigerant pressures.","Combine saturation and line temperatures to calculate superheat and subcooling.","The oily service port deserves an electronic and bubble test.","Repair the confirmed leak before restoring charge."]; const done=TASKS.filter(t=>state.completed.has(t.id)).length; mentor(hints[Math.min(done,hints.length-1)],"warning"); state.scores.efficiency=Math.max(0,state.scores.efficiency-2); $("efficiencyScore").textContent=state.scores.efficiency; };
+$("resultButton").onclick=()=>{ closeModal(els.result); els.play.hidden=true; els.briefing.hidden=false; };
+document.querySelectorAll(".dialog-close").forEach(button => button.addEventListener("click", event => {
+  const dialog = button.closest("dialog");
+  if (dialog && typeof dialog.close !== "function") {
+    event.preventDefault();
+    closeModal(dialog);
+  }
+}));
+document.querySelectorAll(".location-tabs button").forEach(b=>b.onclick=()=>switchScene(b.dataset.scene));
+setInterval(()=>{ if(!state.started||els.play.hidden)return; state.seconds++; const m=String(Math.floor(state.seconds/60)).padStart(2,"0"),s=String(state.seconds%60).padStart(2,"0"); els.timer.textContent=`${m}:${s}`; },1000);
+renderCareer(); renderTasks(); renderActions();
+  </script>
+</body>
+</html>
+
+
+
