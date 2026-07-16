@@ -38,7 +38,7 @@ body .scene.scene[data-scene="truck"] .truck-interior:after{content:"";position:
 
 /* Keep inactive screens out of layout even when component rules set display. */
 [hidden]{display:none!important}
-.briefing{grid-template-columns:minmax(0,1.1fr) minmax(390px,.9fr)}
+.briefing{grid-template-columns:minmax(0,1fr) minmax(390px,1fr)}
 @media(max-width:760px){.briefing{display:flex;flex-direction:column}.briefing-copy{order:-1}}
 
 /* Embedded-preview dialog fallback and responsive mentor layout. */
