@@ -112,12 +112,19 @@ async function completeCall(page, group) {
   const musicOn = await page.evaluate(() => ({
     enabled:window.CoolCall.audioState.enabled,
     running:Boolean(window.CoolCall.audioState.musicTimer),
+    contextState:window.CoolCall.audioState.context?.state,
+    contextTime:window.CoolCall.audioState.context?.currentTime,
+    tonesStarted:window.CoolCall.audioState.tonesStarted,
+    error:window.CoolCall.audioState.lastError,
     label:document.getElementById("soundButton").getAttribute("aria-label")
   }));
-  if (!musicOn.enabled || !musicOn.running || !musicOn.label.includes("off")) failures.push("Sound-on state did not start the music loop");
+  if (!musicOn.enabled || !musicOn.running || musicOn.contextState !== "running" || musicOn.contextTime <= 0 || musicOn.tonesStarted < 2 || musicOn.error || !musicOn.label.includes("off")) {
+    failures.push(`Sound-on state did not produce active audio: ${JSON.stringify(musicOn)}`);
+  }
   await page.click("#soundButton");
-  const musicOff = await page.evaluate(() => ({ enabled:window.CoolCall.audioState.enabled, running:Boolean(window.CoolCall.audioState.musicTimer) }));
-  if (musicOff.enabled || musicOff.running) failures.push("Sound-off state did not stop the music loop");
+  await page.waitForTimeout(50);
+  const musicOff = await page.evaluate(() => ({ enabled:window.CoolCall.audioState.enabled, running:Boolean(window.CoolCall.audioState.musicTimer), contextState:window.CoolCall.audioState.context?.state }));
+  if (musicOff.enabled || musicOff.running || musicOff.contextState !== "suspended") failures.push(`Sound-off state did not stop audio: ${JSON.stringify(musicOff)}`);
   const curriculumCheck = await page.evaluate(() => {
     const repetition = Object.fromEntries(Object.entries(window.COOL_CALL_CURRICULUM.scenarios).map(([group, scenarios]) => {
       const counts = scenarios.reduce((result, scenario) => ({ ...result, [scenario.focus.name]:(result[scenario.focus.name] || 0) + 1 }), {});
