@@ -34,7 +34,7 @@ const state = {
   completed: new Set(), notes: [], scores: { safety: 100, accuracy: 100, efficiency: 100 }, seconds: 0,
   started: false, xp: loadNumber("coolcall-xp"), mastery: loadObject("coolcall-question-mastery"), quizCallback: null
 };
-const audioState = { enabled: false, context: null, musicTimer: null, musicStartTimer: null, musicStep: 0 };
+const audioState = { enabled: false, context: null, output: null, musicTimer: null, musicStartTimer: null, musicStep: 0, tonesStarted: 0, lastError: "" };
 const MUSIC_STEP_MS = 190;
 // Original major-key chiptune written for Cool Call; intentionally not based on a recognizable song.
 const MUSIC_MELODY = [
@@ -50,10 +50,13 @@ function escapeHtml(value) {
 }
 
 function audioContext() {
-  if (audioState.context) return audioState.context;
+  if (audioState.context && audioState.context.state !== "closed") return audioState.context;
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return null;
   audioState.context = new AudioContext();
+  audioState.output = audioState.context.createGain();
+  audioState.output.gain.value = .85;
+  audioState.output.connect(audioState.context.destination);
   return audioState.context;
 }
 
@@ -61,18 +64,23 @@ function tone(frequency, duration=.08, delay=0, type="sine", volume=.035) {
   if (!audioState.enabled) return;
   const context = audioContext();
   if (!context) return;
-  if (context.state === "suspended") context.resume();
-  const start = context.currentTime + delay;
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, start);
-  gain.gain.setValueAtTime(.0001, start);
-  gain.gain.exponentialRampToValueAtTime(volume, start + .01);
-  gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
-  oscillator.connect(gain).connect(context.destination);
-  oscillator.start(start);
-  oscillator.stop(start + duration + .02);
+  const schedule = () => {
+    if (!audioState.enabled || context.state !== "running") return;
+    const start = context.currentTime + delay;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    gain.gain.setValueAtTime(.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + .01);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+    oscillator.connect(gain).connect(audioState.output);
+    oscillator.start(start);
+    oscillator.stop(start + duration + .02);
+    audioState.tonesStarted++;
+  };
+  if (context.state === "running") schedule();
+  else context.resume().then(schedule).catch(error => { audioState.lastError = error?.message || String(error); });
 }
 
 function playSound(kind="click") {
@@ -87,10 +95,10 @@ function musicTick() {
   if (!audioState.enabled || document.hidden) return;
   const step = audioState.musicStep % MUSIC_MELODY.length;
   const melody = MUSIC_MELODY[step];
-  if (melody) tone(melody, .14, 0, "square", .011);
+  if (melody) tone(melody, .14, 0, "square", .022);
   if (step % 4 === 0) {
     const bass = MUSIC_BASS[Math.floor(step / 4) % MUSIC_BASS.length];
-    tone(bass, .22, 0, "triangle", .009);
+    tone(bass, .22, 0, "triangle", .014);
   }
   audioState.musicStep = (step + 1) % MUSIC_MELODY.length;
 }
@@ -127,11 +135,29 @@ function renderSoundButton() {
 
 function toggleSound() {
   audioState.enabled = !audioState.enabled;
+  audioState.lastError = "";
   renderSoundButton();
   if (audioState.enabled) {
-    playSound("good");
-    queueMusicStart();
-  } else stopMusic();
+    const context = audioContext();
+    if (!context) {
+      audioState.enabled = false;
+      audioState.lastError = "Web Audio is not supported in this browser.";
+      renderSoundButton();
+      return;
+    }
+    context.resume().then(() => {
+      if (!audioState.enabled) return;
+      playSound("good");
+      queueMusicStart();
+    }).catch(error => {
+      audioState.enabled = false;
+      audioState.lastError = error?.message || String(error);
+      renderSoundButton();
+    });
+  } else {
+    stopMusic();
+    if (audioState.context?.state === "running") audioState.context.suspend().catch(() => {});
+  }
 }
 
 function openModal(dialog) {
