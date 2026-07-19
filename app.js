@@ -34,7 +34,10 @@ const state = {
   completed: new Set(), notes: [], scores: { safety: 100, accuracy: 100, efficiency: 100 }, seconds: 0,
   started: false, xp: loadNumber("coolcall-xp"), mastery: loadObject("coolcall-question-mastery"), quizCallback: null
 };
-const audioState = { enabled: false, context: null, output: null, musicTimer: null, musicStartTimer: null, musicStep: 0, tonesStarted: 0, lastError: "" };
+const audioState = {
+  enabled: false, context: null, output: null, musicTimer: null, musicStartTimer: null, musicStep: 0,
+  musicSource: "", mediaPlaying: false, tonesStarted: 0, lastError: ""
+};
 const MUSIC_STEP_MS = 190;
 // Original major-key chiptune written for Cool Call; intentionally not based on a recognizable song.
 const MUSIC_MELODY = [
@@ -103,17 +106,52 @@ function musicTick() {
   audioState.musicStep = (step + 1) % MUSIC_MELODY.length;
 }
 
-function startMusic() {
-  if (!audioState.enabled || document.hidden || audioState.musicTimer) return;
+function startSynthMusic() {
+  if (!audioState.enabled || document.hidden || audioState.musicTimer || audioState.mediaPlaying) return;
+  audioState.musicSource = "synth";
   musicTick();
   audioState.musicTimer = window.setInterval(musicTick, MUSIC_STEP_MS);
+}
+
+function startMusic() {
+  if (!audioState.enabled || document.hidden) return;
+  const track = $("musicTrack");
+  if (!track) { startSynthMusic(); return; }
+  track.volume = .55;
+  const playback = track.play();
+  if (!playback || typeof playback.then !== "function") {
+    audioState.mediaPlaying = !track.paused;
+    audioState.musicSource = audioState.mediaPlaying ? "media" : "";
+    if (!audioState.mediaPlaying) startSynthMusic();
+    return;
+  }
+  playback.then(() => {
+    if (!audioState.enabled || document.hidden) { track.pause(); return; }
+    audioState.mediaPlaying = true;
+    audioState.musicSource = "media";
+    if (audioState.musicTimer) window.clearInterval(audioState.musicTimer);
+    audioState.musicTimer = null;
+  }).catch(error => {
+    audioState.mediaPlaying = false;
+    audioState.lastError = error?.message || String(error);
+    startSynthMusic();
+  });
 }
 
 function stopMusic(reset=true) {
   if (audioState.musicStartTimer) window.clearTimeout(audioState.musicStartTimer);
   if (audioState.musicTimer) window.clearInterval(audioState.musicTimer);
+  const track = $("musicTrack");
+  if (track) {
+    track.pause();
+    if (reset) {
+      try { track.currentTime = 0; } catch { /* Some browsers delay media seeking until metadata loads. */ }
+    }
+  }
   audioState.musicStartTimer = null;
   audioState.musicTimer = null;
+  audioState.mediaPlaying = false;
+  audioState.musicSource = "";
   if (reset) audioState.musicStep = 0;
 }
 
@@ -138,21 +176,19 @@ function toggleSound() {
   audioState.lastError = "";
   renderSoundButton();
   if (audioState.enabled) {
+    // Native media playback must begin directly inside the tap handler on iPadOS.
+    startMusic();
     const context = audioContext();
     if (!context) {
-      audioState.enabled = false;
       audioState.lastError = "Web Audio is not supported in this browser.";
-      renderSoundButton();
       return;
     }
     context.resume().then(() => {
       if (!audioState.enabled) return;
       playSound("good");
-      queueMusicStart();
     }).catch(error => {
-      audioState.enabled = false;
       audioState.lastError = error?.message || String(error);
-      renderSoundButton();
+      if (!audioState.mediaPlaying) queueMusicStart();
     });
   } else {
     stopMusic();
